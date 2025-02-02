@@ -7,9 +7,13 @@ const Environment = @import("Environment.zig");
 const Connection = @import("Connection.zig");
 
 const odbc = @import("odbc");
+const attrs = odbc.attributes;
 const rc = odbc.return_codes;
 const types = odbc.types;
 const sql = odbc.sql;
+
+const ColAttribute = attrs.ColAttribute;
+const ColAttributeValue = attrs.ColAttributeValue;
 
 const Self = @This();
 
@@ -76,9 +80,34 @@ pub fn columnPrivileges(self: Self) !void {
     _ = self;
 }
 
-pub fn colAttribute(self: Self) !void {
-    _ = self;
+pub fn colAttribute(
+    self: Self,
+    col_number: usize,
+    allocator: std.mem.Allocator,
+    attr: ColAttribute,
+) !ColAttributeValue {
+    var str_len: i32 = 0;
+    var odbc_buf: [1024]u8 = undefined;
+    var num_val: c_long = undefined;
+    return switch (sql.SQLColAttribute(
+        self.handle(),
+        col_number,
+        attr,
+        @ptrCast(&odbc_buf),
+        @intCast(odbc_buf.len),
+        &str_len,
+        &num_val,
+    )) {
+        .SUCCESS, .SUCCESS_WITH_INFO => ColAttributeValue.init(allocator, attr, odbc_buf, str_len, num_val),
+        .ERR => ColAttributeError.Error,
+        .INVALID_HANDLE => ColAttributeError.InvalidHandle,
+    };
 }
+
+pub const ColAttributeError = error{
+    Error,
+    InvalidHandle,
+};
 
 pub fn colAttributes(self: Self) !void {
     _ = self;
@@ -213,8 +242,14 @@ pub fn execute(self: Self) !void {
     };
 }
 
-pub fn execDirect(self: Self) !void {
-    _ = self;
+pub fn execDirect(self: Self, stmt_str: []const u8) !void {
+    return switch (sql.SQLExecDirect(self.handle(), stmt_str)) {
+        .SUCCESS, .SUCCESS_WITH_INFO => {},
+        .ERR => ExecDirectError.Error,
+        .INVALID_HANDLE => ExecDirectError.InvalidHandle,
+        .NEED_DATA => ExecDirectError.NeedData,
+        .NO_DATA_FOUND => ExecDirectError.NoDataFound,
+    };
 }
 
 pub fn setStmtAttr(self: Self) !void {
@@ -288,6 +323,13 @@ pub const BindColError = error{
 };
 
 pub const ExecuteError = error{
+    Error,
+    InvalidHandle,
+    NeedData,
+    NoDataFound,
+};
+
+pub const ExecDirectError = error{
     Error,
     InvalidHandle,
     NeedData,
