@@ -280,6 +280,30 @@ pub fn bindCol(
     };
 }
 
+pub fn bindCol2(
+    self: Self,
+    col_number: u16,
+    c_type: types.CDataType,
+    buffer: *anyopaque,
+    buffer_length: i64,
+    indicator: *i64,
+) !void {
+    return switch (sql.c.SQLBindCol(
+        self.handle(),
+        col_number,
+        c_type,
+        buffer,
+        buffer_length,
+        indicator,
+    )) {
+        sqlret.success => {},
+        sqlret.success_with_info => error.Info,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
 pub fn bindFileToCol(self: Self) !void {
     _ = self;
 }
