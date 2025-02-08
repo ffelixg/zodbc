@@ -6,6 +6,14 @@ pub const c = @cImport({
     @cInclude("sqlext.h");
 });
 
+pub const msodbc = @cImport({
+    @cInclude("sql.h");
+    @cInclude("sqltypes.h");
+    @cInclude("sqlext.h");
+    @cInclude("wchar.h");
+    @cInclude("msodbcsql.h");
+});
+
 pub const HandleType = enum(c_short) {
     ENV = c.SQL_HANDLE_ENV,
     DBC = c.SQL_HANDLE_DBC,
@@ -92,18 +100,57 @@ pub const ColDescription = struct {
 pub const SQLDataType = enum(c_short) {
     UNKNOWN_TYPE = c.SQL_UNKNOWN_TYPE,
     CHAR = c.SQL_CHAR,
-    NUMERIC = c.SQL_NUMERIC,
-    DECIMAL = c.SQL_DECIMAL,
-    INTEGER = c.SQL_INTEGER,
-    SMALLINT = c.SQL_SMALLINT,
-    FLOAT = c.SQL_FLOAT,
-    REAL = c.SQL_REAL,
-    DOUBLE = c.SQL_DOUBLE,
-    DATETIME = c.SQL_DATETIME,
     VARCHAR = c.SQL_VARCHAR,
+    LONGVARCHAR = c.SQL_LONGVARCHAR,
+    WCHAR = c.SQL_WCHAR,
+    WVARCHAR = c.SQL_WVARCHAR,
+    WLONGVARCHAR = c.SQL_WLONGVARCHAR,
+    DECIMAL = c.SQL_DECIMAL,
+    NUMERIC = c.SQL_NUMERIC,
+    SMALLINT = c.SQL_SMALLINT,
+    INTEGER = c.SQL_INTEGER,
+    REAL = c.SQL_REAL,
+    FLOAT = c.SQL_FLOAT,
+    DOUBLE = c.SQL_DOUBLE,
+    BIT = c.SQL_BIT,
+    TINYINT = c.SQL_TINYINT,
+    BIGINT = c.SQL_BIGINT,
+    BINARY = c.SQL_BINARY,
+    VARBINARY = c.SQL_VARBINARY,
+    LONGVARBINARY = c.SQL_LONGVARBINARY,
+
+    // https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/data-type-identifiers-and-descriptors?view=sql-server-ver16
+    // Verbose types
+    DATETIME = c.SQL_DATETIME,
+    INTERVAL = c.SQL_INTERVAL,
+    // Concise types
     TYPE_DATE = c.SQL_TYPE_DATE,
     TYPE_TIME = c.SQL_TYPE_TIME,
     TYPE_TIMESTAMP = c.SQL_TYPE_TIMESTAMP,
+    INTERVAL_MONTH = c.SQL_INTERVAL_MONTH,
+    INTERVAL_YEAR = c.SQL_INTERVAL_YEAR,
+    INTERVAL_YEAR_TO_MONTH = c.SQL_INTERVAL_YEAR_TO_MONTH,
+    INTERVAL_DAY = c.SQL_INTERVAL_DAY,
+    INTERVAL_HOUR = c.SQL_INTERVAL_HOUR,
+    INTERVAL_MINUTE = c.SQL_INTERVAL_MINUTE,
+    INTERVAL_SECOND = c.SQL_INTERVAL_SECOND,
+    INTERVAL_DAY_TO_HOUR = c.SQL_INTERVAL_DAY_TO_HOUR,
+    INTERVAL_DAY_TO_MINUTE = c.SQL_INTERVAL_DAY_TO_MINUTE,
+    INTERVAL_DAY_TO_SECOND = c.SQL_INTERVAL_DAY_TO_SECOND,
+    INTERVAL_HOUR_TO_MINUTE = c.SQL_INTERVAL_HOUR_TO_MINUTE,
+    INTERVAL_HOUR_TO_SECOND = c.SQL_INTERVAL_HOUR_TO_SECOND,
+    INTERVAL_MINUTE_TO_SECOND = c.SQL_INTERVAL_MINUTE_TO_SECOND,
+
+    GUID = c.SQL_GUID,
+
+    // https://learn.microsoft.com/en-us/sql/relational-databases/native-client-odbc-date-time/data-type-support-for-odbc-date-and-time-improvements?view=sql-server-ver15
+    // SQL Server types
+    SS_VARIANT = msodbc.SQL_SS_VARIANT,
+    SS_UDT = msodbc.SQL_SS_UDT,
+    SS_XML = msodbc.SQL_SS_XML,
+    SS_TABLE = msodbc.SQL_SS_TABLE,
+    SS_TIME2 = msodbc.SQL_SS_TIME2,
+    SS_TIMESTAMPOFFSET = msodbc.SQL_SS_TIMESTAMPOFFSET,
 };
 
 pub const CDataType = enum(c_short) {

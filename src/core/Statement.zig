@@ -87,10 +87,10 @@ pub fn columnPrivileges(self: Self) !void {
     _ = self;
 }
 
-pub fn colAttributeCharacter(
+pub fn colAttributeString(
     self: Self,
     col_number: u16,
-    attr: attrs.ColAttributeCharacter,
+    attr: attrs.ColAttributeString,
     allocator: std.mem.Allocator,
 ) ![]u8 {
     var str_len: i16 = 0;
@@ -104,22 +104,19 @@ pub fn colAttributeCharacter(
         &str_len,
         null,
     )) {
-        sqlret.success, sqlret.success_with_info => blk: {
-            const as_slice = try allocator.alloc(u8, @intCast(str_len));
-            @memcpy(as_slice, odbc_buf[0..@intCast(str_len)]);
-            break :blk as_slice;
-        },
+        sqlret.success, sqlret.success_with_info => try allocator.dupe(u8, odbc_buf[0..@intCast(str_len)]),
         sqlret.err => error.Error,
         sqlret.invalid_handle => error.InvalidHandle,
         else => unreachable,
     };
 }
-pub fn colAttributeScalar(
+
+pub fn colAttributeEnum(
     self: Self,
     col_number: u16,
-    attr: attrs.ColAttribute,
-) !attrs.ColAttributeValue {
-    var num_val: c_long = undefined;
+    attr: attrs.ColAttributeEnum,
+) !attrs.ColAttributeEnumValue {
+    var num_val: i64 = undefined;
     return switch (sql.c.SQLColAttribute(
         self.handle(),
         col_number,
@@ -129,7 +126,55 @@ pub fn colAttributeScalar(
         null,
         &num_val,
     )) {
-        sqlret.success, sqlret.success_with_info => attrs.ColAttributeValue.init(attr, num_val),
+        sqlret.success, sqlret.success_with_info => attrs.ColAttributeEnumValue.init(attr, num_val),
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn colAttributeInt(
+    self: Self,
+    col_number: u16,
+    attr: attrs.ColAttributeInt,
+) !i64 {
+    var num_val: i64 = undefined;
+    return switch (sql.c.SQLColAttribute(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        null,
+        0,
+        null,
+        &num_val,
+    )) {
+        sqlret.success, sqlret.success_with_info => num_val,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn colAttributeBool(
+    self: Self,
+    col_number: u16,
+    attr: attrs.ColAttributeBool,
+) !bool {
+    var num_val: i64 = undefined;
+    return switch (sql.c.SQLColAttribute(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        null,
+        0,
+        null,
+        &num_val,
+    )) {
+        sqlret.success, sqlret.success_with_info => switch (num_val) {
+            sql.c.SQL_TRUE => true,
+            sql.c.SQL_FALSE => false,
+            else => unreachable,
+        },
         sqlret.err => error.Error,
         sqlret.invalid_handle => error.InvalidHandle,
         else => unreachable,

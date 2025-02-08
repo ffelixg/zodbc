@@ -402,7 +402,7 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
 //
 
 /// The integer codes for ODBC compliant column attributes
-pub const ColAttributeCharacter = enum(c_ushort) {
+pub const ColAttributeString = enum(u16) {
     BaseColumnName = c.SQL_DESC_BASE_COLUMN_NAME, // (ODBC 3.0)	CharacterAttributePtr	The base column name for the result set column. If a base column name does not exist (as in the case of columns that are expressions), then this variable contains an empty string.
     BaseTableName = c.SQL_DESC_BASE_TABLE_NAME, // (ODBC 3.0)	CharacterAttributePtr	The name of the base table that contains the column. If the base table name cannot be defined or is not applicable, then this variable contains an empty string.
     CatalogName = c.SQL_DESC_CATALOG_NAME, // (ODBC 2.0)	CharacterAttributePtr	The catalog of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view. If the data source does not support catalogs or the catalog name cannot be determined, an empty string is returned. This VARCHAR record field is not limited to 128 characters.
@@ -416,55 +416,79 @@ pub const ColAttributeCharacter = enum(c_ushort) {
     TypeName = c.SQL_DESC_TYPE_NAME, // (ODBC 1.0)	CharacterAttributePtr	Data source-dependent data type name; for example, "CHAR", "VARCHAR", "MONEY", "LONG VARBINARY", or "CHAR ( ) FOR BIT DATA".
 };
 
-pub const ColAttribute = enum(c_ushort) {
-    AutoUniqueValue = c.SQL_DESC_AUTO_UNIQUE_VALUE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is an autoincrementing column.
-    CaseSensitive = c.SQL_DESC_CASE_SENSITIVE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is treated as case-sensitive for collations and comparisons.
-    ConciseType = c.SQL_DESC_CONCISE_TYPE, // (ODBC 1.0)	NumericAttributePtr	The concise data type.
+pub const ColAttributeInt = enum(u16) {
     Count = c.SQL_DESC_COUNT, // (ODBC 1.0)	NumericAttributePtr	The number of columns available in the result set. This returns 0 if there are no columns in the result set. The value in the ColumnNumber argument is ignored.
     DisplaySize = c.SQL_DESC_DISPLAY_SIZE, // (ODBC 1.0)	NumericAttributePtr	Maximum number of characters required to display data from the column. For more information about display size, see Column Size, Decimal Digits, Transfer Octet Length, and Display Size in Appendix D: Data Types.
-    FixedPrecScale = c.SQL_DESC_FIXED_PREC_SCALE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column has a fixed precision and nonzero scale that are data source-specific.
     Length = c.SQL_DESC_LENGTH, // (ODBC 3.0)	NumericAttributePtr	A numeric value that is either the maximum or actual character length of a character string or binary data type. It is the maximum character length for a fixed-length data type, or the actual character length for a variable-length data type. Its value always excludes the null-termination byte that ends the character string.
-    Nullable = c.SQL_DESC_NULLABLE, // (ODBC 3.0)	NumericAttributePtr	SQL_ NULLABLE if the column can have NULL values; SQL_NO_NULLS if the column does not have NULL values; or SQL_NULLABLE_UNKNOWN if it is not known whether the column accepts NULL values.
-    NumPrecRadix = c.SQL_DESC_NUM_PREC_RADIX, // (ODBC 3.0)	NumericAttributePtr	If the data type in the SQL_DESC_TYPE field is an approximate numeric data type, this SQLINTEGER field contains a value of 2 because the SQL_DESC_PRECISION field contains the number of bits. If the data type in the SQL_DESC_TYPE field is an exact numeric data type, this field contains a value of 10 because the SQL_DESC_PRECISION field contains the number of decimal digits. This field is set to 0 for all non-numeric data types.
     OctetLength = c.SQL_DESC_OCTET_LENGTH, // (ODBC 3.0)	NumericAttributePtr	The length, in bytes, of a character string or binary data type. For fixed-length character or binary types, this is the actual length in bytes. For variable-length character or binary types, this is the maximum length in bytes. This value does not include the null terminator.
     Precision = c.SQL_DESC_PRECISION, // (ODBC 3.0)	NumericAttributePtr	A numeric value that for a numeric data type denotes the applicable precision. For data types SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, and all the interval data types that represent a time interval, its value is the applicable precision of the fractional seconds component.
     Scale = c.SQL_DESC_SCALE, // (ODBC 3.0)	NumericAttributePtr	A numeric value that is the applicable scale for a numeric data type. For DECIMAL and NUMERIC data types, this is the defined scale. It is undefined for all other data types.
+};
+
+pub const ColAttributeBool = enum(u16) {
+    AutoUniqueValue = c.SQL_DESC_AUTO_UNIQUE_VALUE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is an autoincrementing column.
+    CaseSensitive = c.SQL_DESC_CASE_SENSITIVE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is treated as case-sensitive for collations and comparisons.
+    FixedPrecScale = c.SQL_DESC_FIXED_PREC_SCALE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column has a fixed precision and nonzero scale that are data source-specific.
+    Unsigned = c.SQL_DESC_UNSIGNED, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is unsigned (or not numeric).
+};
+
+pub const ColAttributeEnum = enum(u16) {
+    ConciseType = c.SQL_DESC_CONCISE_TYPE, // (ODBC 1.0)	NumericAttributePtr	The concise data type.
+    Nullable = c.SQL_DESC_NULLABLE, // (ODBC 3.0)	NumericAttributePtr	SQL_ NULLABLE if the column can have NULL values; SQL_NO_NULLS if the column does not have NULL values; or SQL_NULLABLE_UNKNOWN if it is not known whether the column accepts NULL values.
+    NumPrecRadix = c.SQL_DESC_NUM_PREC_RADIX, // (ODBC 3.0)	NumericAttributePtr	If the data type in the SQL_DESC_TYPE field is an approximate numeric data type, this SQLINTEGER field contains a value of 2 because the SQL_DESC_PRECISION field contains the number of bits. If the data type in the SQL_DESC_TYPE field is an exact numeric data type, this field contains a value of 10 because the SQL_DESC_PRECISION field contains the number of decimal digits. This field is set to 0 for all non-numeric data types.
     Searchable = c.SQL_DESC_SEARCHABLE, // (ODBC 1.0)	NumericAttributePtr	SQL_PRED_NONE if the column cannot be used in a WHERE clause. (This is the same as the SQL_UNSEARCHABLE value in ODBC 2.x.)
     Type = c.SQL_DESC_TYPE, // (ODBC 3.0)	NumericAttributePtr	A numeric value that specifies the SQL data type.
     Unnamed = c.SQL_DESC_UNNAMED, // (ODBC 3.0)	NumericAttributePtr	SQL_NAMED or SQL_UNNAMED. If the SQL_DESC_NAME field of the IRD contains a column alias or a column name, SQL_NAMED is returned. If there is no column name or column alias, SQL_UNNAMED is returned.
-    Unsigned = c.SQL_DESC_UNSIGNED, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is unsigned (or not numeric).
     Updatable = c.SQL_DESC_UPDATABLE, // (ODBC 1.0)	NumericAttributePtr	Column is described by the values for the defined constants:
 };
 
-pub const ColAttributeValue = union(ColAttribute) {
-    AutoUniqueValue: c_long,
-    CaseSensitive: c_long,
+pub const ColAttributeEnumValue = union(ColAttributeEnum) {
     ConciseType: types.SQLDataType,
-    Count: c_long,
-    DisplaySize: c_long,
-    FixedPrecScale: c_long,
-    Length: c_long,
-    Nullable: c_long,
-    NumPrecRadix: c_long,
-    OctetLength: c_long,
-    Precision: c_long,
-    Scale: c_long,
-    Searchable: c_long,
+    Nullable: Nullable,
+    NumPrecRadix: NumPrecRadix,
+    Searchable: Searchable,
     Type: types.SQLDataType,
-    Unnamed: c_long,
-    Unsigned: c_long,
-    Updatable: c_long,
+    Unnamed: Unnamed,
+    Updatable: Updatable,
+
+    const Nullable = enum(i64) {
+        Nullable = c.SQL_NULLABLE,
+        NoNulls = c.SQL_NO_NULLS,
+        NullableUnknown = c.SQL_NULLABLE_UNKNOWN,
+    };
+    const NumPrecRadix = enum(i64) {
+        ApproximateNumeric = 2,
+        ExactNumeric = 10,
+        NonNumeric = 0,
+    };
+    const Searchable = enum(i64) {
+        Unsearchable = c.SQL_PRED_NONE,
+        SearchableLikeOnly = c.SQL_PRED_CHAR,
+        SearchableNoLike = c.SQL_PRED_BASIC,
+        Searchable = c.SQL_PRED_SEARCHABLE,
+    };
+    const Unnamed = enum(i64) {
+        Named = c.SQL_NAMED,
+        Unnamed = c.SQL_UNNAMED,
+    };
+    const Updatable = enum(i64) {
+        ReadOnly = c.SQL_ATTR_READONLY,
+        Write = c.SQL_ATTR_WRITE,
+        Unknown = c.SQL_ATTR_READWRITE_UNKNOWN,
+    };
 
     pub fn init(
-        attr: ColAttribute,
-        num_val: c_long,
-    ) !ColAttributeValue {
-        std.debug.print("{}\n", .{num_val});
-        // TODO @unionInit
-        switch (attr) {
-            .Type => return .{ .Type = @enumFromInt(num_val) },
-            .ConciseType => return .{ .ConciseType = @enumFromInt(num_val) },
-            else => unreachable,
-        }
+        attr: ColAttributeEnum,
+        num_val: i64,
+    ) !ColAttributeEnumValue {
+        return switch (attr) {
+            .ConciseType => .{ .ConciseType = @enumFromInt(num_val) },
+            .Nullable => .{ .Nullable = @enumFromInt(num_val) },
+            .NumPrecRadix => .{ .NumPrecRadix = @enumFromInt(num_val) },
+            .Searchable => .{ .Searchable = @enumFromInt(num_val) },
+            .Type => .{ .Type = @enumFromInt(num_val) },
+            .Unnamed => .{ .Unnamed = @enumFromInt(num_val) },
+            .Updatable => .{ .Updatable = @enumFromInt(num_val) },
+        };
     }
 };
