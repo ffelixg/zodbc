@@ -7,6 +7,7 @@ pub const c = @cImport({
 });
 
 const types = @import("types.zig");
+const mem = @import("mem.zig");
 const info = @import("info.zig");
 const attrs = @import("attributes.zig");
 const rc = @import("return_codes.zig");
@@ -182,30 +183,6 @@ pub fn SQLExecDirect(
         @ptrCast(@constCast(stmt_str)),
         @intCast(stmt_str.len),
     );
-    return @enumFromInt(return_code);
-}
-
-pub const usmallint = c.SQLUSMALLINT;
-
-pub fn SQLColAttribute(
-    handle: ?*anyopaque,
-    col_number: usize,
-    attr: attrs.ColAttribute,
-    str_val: *anyopaque,
-    buf_len: i32,
-    str_len: *i32,
-    num_val: *c_long,
-) rc.ColAttributeRC {
-    const return_code = c.SQLColAttribute(
-        handle,
-        @intCast(col_number),
-        @intFromEnum(attr),
-        str_val,
-        @intCast(buf_len), // TODO fix type
-        @ptrCast(str_len),
-        num_val,
-    );
-
     return @enumFromInt(return_code);
 }
 

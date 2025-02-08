@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const mem = @import("mem.zig");
+const types = @import("types.zig");
 const readInt = mem.readInt;
 
 pub const c = @cImport({
@@ -438,7 +439,7 @@ pub const ColAttributeValue = union(ColAttribute) {
     BaseTableName: []u8,
     CaseSensitive: c_long,
     CatalogName: []u8,
-    ConciseType: c_long,
+    ConciseType: types.SQLDataType,
     Count: c_long,
     DisplaySize: c_long,
     FixedPrecScale: c_long,
@@ -456,7 +457,7 @@ pub const ColAttributeValue = union(ColAttribute) {
     SchemaName: []u8,
     Searchable: c_long,
     TableName: []u8,
-    Type: c_long,
+    Type: types.SQLDataType,
     TypeName: []u8,
     Unnamed: c_long,
     Unsigned: c_long,
@@ -469,9 +470,9 @@ pub const ColAttributeValue = union(ColAttribute) {
         str_len: i32,
         num_val: c_long,
     ) !ColAttributeValue {
-        _ = num_val;
         const as_slice = try allocator.alloc(u8, @intCast(str_len));
         @memcpy(as_slice, odbc_buf[0..@intCast(str_len)]);
+        std.debug.print("{}\n", .{num_val});
         // TODO @unionInit
         switch (attr) {
             .BaseColumnName => return .{ .BaseColumnName = as_slice },
@@ -485,6 +486,8 @@ pub const ColAttributeValue = union(ColAttribute) {
             .SchemaName => return .{ .SchemaName = as_slice },
             .TableName => return .{ .TableName = as_slice },
             .TypeName => return .{ .TypeName = as_slice },
+            .Type => return .{ .Type = @enumFromInt(num_val) },
+            .ConciseType => return .{ .ConciseType = @enumFromInt(num_val) },
             else => unreachable,
         }
     }

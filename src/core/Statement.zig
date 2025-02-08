@@ -19,6 +19,16 @@ const Self = @This();
 
 handler: Handle,
 
+const sqlret = struct {
+    const success = sql.c.SQL_SUCCESS;
+    const success_with_info = sql.c.SQL_SUCCESS_WITH_INFO;
+    const err = sql.c.SQL_ERROR;
+    const invalid_handle = sql.c.SQL_INVALID_HANDLE;
+    const still_executing = sql.c.SQL_STILL_EXECUTING;
+    const need_data = sql.c.SQL_NEED_DATA;
+    const no_data_found = sql.c.SQL_NO_DATA_FOUND;
+};
+
 pub fn init(con: Connection) !Self {
     const handler = try Handle.init(.STMT, con.handle());
     return .{ .handler = handler };
@@ -82,32 +92,28 @@ pub fn columnPrivileges(self: Self) !void {
 
 pub fn colAttribute(
     self: Self,
-    col_number: usize,
+    col_number: u16,
     allocator: std.mem.Allocator,
     attr: ColAttribute,
 ) !ColAttributeValue {
-    var str_len: i32 = 0;
+    var str_len: i16 = 0;
     var odbc_buf: [1024]u8 = undefined;
     var num_val: c_long = undefined;
-    return switch (sql.SQLColAttribute(
+    return switch (sql.c.SQLColAttribute(
         self.handle(),
         col_number,
-        attr,
-        @ptrCast(&odbc_buf),
+        @intFromEnum(attr),
+        &odbc_buf,
         @intCast(odbc_buf.len),
         &str_len,
         &num_val,
     )) {
-        .SUCCESS, .SUCCESS_WITH_INFO => ColAttributeValue.init(allocator, attr, odbc_buf, str_len, num_val),
-        .ERR => ColAttributeError.Error,
-        .INVALID_HANDLE => ColAttributeError.InvalidHandle,
+        sqlret.success, sqlret.success_with_info => ColAttributeValue.init(allocator, attr, odbc_buf, str_len, num_val),
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
     };
 }
-
-pub const ColAttributeError = error{
-    Error,
-    InvalidHandle,
-};
 
 pub fn colAttributes(self: Self) !void {
     _ = self;
