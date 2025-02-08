@@ -402,32 +402,35 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
 //
 
 /// The integer codes for ODBC compliant column attributes
-pub const ColAttribute = enum(c_ushort) {
-    AutoUniqueValue = c.SQL_DESC_AUTO_UNIQUE_VALUE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is an autoincrementing column.
+pub const ColAttributeCharacter = enum(c_ushort) {
     BaseColumnName = c.SQL_DESC_BASE_COLUMN_NAME, // (ODBC 3.0)	CharacterAttributePtr	The base column name for the result set column. If a base column name does not exist (as in the case of columns that are expressions), then this variable contains an empty string.
     BaseTableName = c.SQL_DESC_BASE_TABLE_NAME, // (ODBC 3.0)	CharacterAttributePtr	The name of the base table that contains the column. If the base table name cannot be defined or is not applicable, then this variable contains an empty string.
-    CaseSensitive = c.SQL_DESC_CASE_SENSITIVE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is treated as case-sensitive for collations and comparisons.
     CatalogName = c.SQL_DESC_CATALOG_NAME, // (ODBC 2.0)	CharacterAttributePtr	The catalog of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view. If the data source does not support catalogs or the catalog name cannot be determined, an empty string is returned. This VARCHAR record field is not limited to 128 characters.
-    ConciseType = c.SQL_DESC_CONCISE_TYPE, // (ODBC 1.0)	NumericAttributePtr	The concise data type.
-    Count = c.SQL_DESC_COUNT, // (ODBC 1.0)	NumericAttributePtr	The number of columns available in the result set. This returns 0 if there are no columns in the result set. The value in the ColumnNumber argument is ignored.
-    DisplaySize = c.SQL_DESC_DISPLAY_SIZE, // (ODBC 1.0)	NumericAttributePtr	Maximum number of characters required to display data from the column. For more information about display size, see Column Size, Decimal Digits, Transfer Octet Length, and Display Size in Appendix D: Data Types.
-    FixedPrecScale = c.SQL_DESC_FIXED_PREC_SCALE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column has a fixed precision and nonzero scale that are data source-specific.
     Label = c.SQL_DESC_LABEL, // (ODBC 2.0)	CharacterAttributePtr	The column label or title. For example, a column named EmpName might be labeled Employee Name or might be labeled with an alias.
-    Length = c.SQL_DESC_LENGTH, // (ODBC 3.0)	NumericAttributePtr	A numeric value that is either the maximum or actual character length of a character string or binary data type. It is the maximum character length for a fixed-length data type, or the actual character length for a variable-length data type. Its value always excludes the null-termination byte that ends the character string.
     LiteralPrefix = c.SQL_DESC_LITERAL_PREFIX, // (ODBC 3.0)	CharacterAttributePtr	This VARCHAR(128) record field contains the character or characters that the driver recognizes as a prefix for a literal of this data type. This field contains an empty string for a data type for which a literal prefix is not applicable. For more information, see Literal Prefixes and Suffixes.
     LiteralSuffix = c.SQL_DESC_LITERAL_SUFFIX, // (ODBC 3.0)	CharacterAttributePtr	This VARCHAR(128) record field contains the character or characters that the driver recognizes as a suffix for a literal of this data type. This field contains an empty string for a data type for which a literal suffix is not applicable. For more information, see Literal Prefixes and Suffixes.
     LocalTypeName = c.SQL_DESC_LOCAL_TYPE_NAME, // (ODBC 3.0)	CharacterAttributePtr	This VARCHAR(128) record field contains any localized (native language) name for the data type that may be different from the regular name of the data type. If there is no localized name, then an empty string is returned. This field is for display purposes only. The character set of the string is locale-dependent and is typically the default character set of the server.
     Name = c.SQL_DESC_NAME, // (ODBC 3.0)	CharacterAttributePtr	The column alias, if it applies. If the column alias does not apply, the column name is returned. In either case, SQL_DESC_UNNAMED is set to SQL_NAMED. If there is no column name or a column alias, an empty string is returned and SQL_DESC_UNNAMED is set to SQL_UNNAMED.
+    SchemaName = c.SQL_DESC_SCHEMA_NAME, // (ODBC 2.0)	CharacterAttributePtr	The schema of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view. If the data source does not support schemas or the schema name cannot be determined, an empty string is returned. This VARCHAR record field is not limited to 128 characters.
+    TableName = c.SQL_DESC_TABLE_NAME, // (ODBC 2.0)	CharacterAttributePtr	The name of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view.
+    TypeName = c.SQL_DESC_TYPE_NAME, // (ODBC 1.0)	CharacterAttributePtr	Data source-dependent data type name; for example, "CHAR", "VARCHAR", "MONEY", "LONG VARBINARY", or "CHAR ( ) FOR BIT DATA".
+};
+
+pub const ColAttribute = enum(c_ushort) {
+    AutoUniqueValue = c.SQL_DESC_AUTO_UNIQUE_VALUE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is an autoincrementing column.
+    CaseSensitive = c.SQL_DESC_CASE_SENSITIVE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is treated as case-sensitive for collations and comparisons.
+    ConciseType = c.SQL_DESC_CONCISE_TYPE, // (ODBC 1.0)	NumericAttributePtr	The concise data type.
+    Count = c.SQL_DESC_COUNT, // (ODBC 1.0)	NumericAttributePtr	The number of columns available in the result set. This returns 0 if there are no columns in the result set. The value in the ColumnNumber argument is ignored.
+    DisplaySize = c.SQL_DESC_DISPLAY_SIZE, // (ODBC 1.0)	NumericAttributePtr	Maximum number of characters required to display data from the column. For more information about display size, see Column Size, Decimal Digits, Transfer Octet Length, and Display Size in Appendix D: Data Types.
+    FixedPrecScale = c.SQL_DESC_FIXED_PREC_SCALE, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column has a fixed precision and nonzero scale that are data source-specific.
+    Length = c.SQL_DESC_LENGTH, // (ODBC 3.0)	NumericAttributePtr	A numeric value that is either the maximum or actual character length of a character string or binary data type. It is the maximum character length for a fixed-length data type, or the actual character length for a variable-length data type. Its value always excludes the null-termination byte that ends the character string.
     Nullable = c.SQL_DESC_NULLABLE, // (ODBC 3.0)	NumericAttributePtr	SQL_ NULLABLE if the column can have NULL values; SQL_NO_NULLS if the column does not have NULL values; or SQL_NULLABLE_UNKNOWN if it is not known whether the column accepts NULL values.
     NumPrecRadix = c.SQL_DESC_NUM_PREC_RADIX, // (ODBC 3.0)	NumericAttributePtr	If the data type in the SQL_DESC_TYPE field is an approximate numeric data type, this SQLINTEGER field contains a value of 2 because the SQL_DESC_PRECISION field contains the number of bits. If the data type in the SQL_DESC_TYPE field is an exact numeric data type, this field contains a value of 10 because the SQL_DESC_PRECISION field contains the number of decimal digits. This field is set to 0 for all non-numeric data types.
     OctetLength = c.SQL_DESC_OCTET_LENGTH, // (ODBC 3.0)	NumericAttributePtr	The length, in bytes, of a character string or binary data type. For fixed-length character or binary types, this is the actual length in bytes. For variable-length character or binary types, this is the maximum length in bytes. This value does not include the null terminator.
     Precision = c.SQL_DESC_PRECISION, // (ODBC 3.0)	NumericAttributePtr	A numeric value that for a numeric data type denotes the applicable precision. For data types SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, and all the interval data types that represent a time interval, its value is the applicable precision of the fractional seconds component.
     Scale = c.SQL_DESC_SCALE, // (ODBC 3.0)	NumericAttributePtr	A numeric value that is the applicable scale for a numeric data type. For DECIMAL and NUMERIC data types, this is the defined scale. It is undefined for all other data types.
-    SchemaName = c.SQL_DESC_SCHEMA_NAME, // (ODBC 2.0)	CharacterAttributePtr	The schema of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view. If the data source does not support schemas or the schema name cannot be determined, an empty string is returned. This VARCHAR record field is not limited to 128 characters.
     Searchable = c.SQL_DESC_SEARCHABLE, // (ODBC 1.0)	NumericAttributePtr	SQL_PRED_NONE if the column cannot be used in a WHERE clause. (This is the same as the SQL_UNSEARCHABLE value in ODBC 2.x.)
-    TableName = c.SQL_DESC_TABLE_NAME, // (ODBC 2.0)	CharacterAttributePtr	The name of the table that contains the column. The returned value is implementation-defined if the column is an expression or if the column is part of a view.
     Type = c.SQL_DESC_TYPE, // (ODBC 3.0)	NumericAttributePtr	A numeric value that specifies the SQL data type.
-    TypeName = c.SQL_DESC_TYPE_NAME, // (ODBC 1.0)	CharacterAttributePtr	Data source-dependent data type name; for example, "CHAR", "VARCHAR", "MONEY", "LONG VARBINARY", or "CHAR ( ) FOR BIT DATA".
     Unnamed = c.SQL_DESC_UNNAMED, // (ODBC 3.0)	NumericAttributePtr	SQL_NAMED or SQL_UNNAMED. If the SQL_DESC_NAME field of the IRD contains a column alias or a column name, SQL_NAMED is returned. If there is no column name or column alias, SQL_UNNAMED is returned.
     Unsigned = c.SQL_DESC_UNSIGNED, // (ODBC 1.0)	NumericAttributePtr	SQL_TRUE if the column is unsigned (or not numeric).
     Updatable = c.SQL_DESC_UPDATABLE, // (ODBC 1.0)	NumericAttributePtr	Column is described by the values for the defined constants:
@@ -435,57 +438,30 @@ pub const ColAttribute = enum(c_ushort) {
 
 pub const ColAttributeValue = union(ColAttribute) {
     AutoUniqueValue: c_long,
-    BaseColumnName: []u8,
-    BaseTableName: []u8,
     CaseSensitive: c_long,
-    CatalogName: []u8,
     ConciseType: types.SQLDataType,
     Count: c_long,
     DisplaySize: c_long,
     FixedPrecScale: c_long,
-    Label: []u8,
     Length: c_long,
-    LiteralPrefix: []u8,
-    LiteralSuffix: []u8,
-    LocalTypeName: []u8,
-    Name: []u8,
     Nullable: c_long,
     NumPrecRadix: c_long,
     OctetLength: c_long,
     Precision: c_long,
     Scale: c_long,
-    SchemaName: []u8,
     Searchable: c_long,
-    TableName: []u8,
     Type: types.SQLDataType,
-    TypeName: []u8,
     Unnamed: c_long,
     Unsigned: c_long,
     Updatable: c_long,
 
     pub fn init(
-        allocator: std.mem.Allocator,
         attr: ColAttribute,
-        odbc_buf: [1024]u8,
-        str_len: i32,
         num_val: c_long,
     ) !ColAttributeValue {
-        const as_slice = try allocator.alloc(u8, @intCast(str_len));
-        @memcpy(as_slice, odbc_buf[0..@intCast(str_len)]);
         std.debug.print("{}\n", .{num_val});
         // TODO @unionInit
         switch (attr) {
-            .BaseColumnName => return .{ .BaseColumnName = as_slice },
-            .BaseTableName => return .{ .BaseTableName = as_slice },
-            .CatalogName => return .{ .CatalogName = as_slice },
-            .Label => return .{ .Label = as_slice },
-            .LiteralPrefix => return .{ .LiteralPrefix = as_slice },
-            .LiteralSuffix => return .{ .LiteralSuffix = as_slice },
-            .LocalTypeName => return .{ .LocalTypeName = as_slice },
-            .Name => return .{ .Name = as_slice },
-            .SchemaName => return .{ .SchemaName = as_slice },
-            .TableName => return .{ .TableName = as_slice },
-            .TypeName => return .{ .TypeName = as_slice },
             .Type => return .{ .Type = @enumFromInt(num_val) },
             .ConciseType => return .{ .ConciseType = @enumFromInt(num_val) },
             else => unreachable,
