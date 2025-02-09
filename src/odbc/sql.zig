@@ -419,7 +419,7 @@ pub const DiagnosticIdentifier = enum(c_short) {
     RowCount = 3,
 };
 
-pub const odbc_error_map = std.ComptimeStringMap(SqlState, .{
+pub const odbc_error_map = std.StaticStringMap(SqlState).initComptime(.{
     .{ "00000", .Success },
     .{ "01000", .GeneralWarning },
     .{ "01001", .CursorOperationConflict },
