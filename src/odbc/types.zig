@@ -69,8 +69,6 @@ pub const ColAttributes = enum(c_int) {
 };
 
 pub const ColDescription = struct {
-    const name_buf_len = 256;
-
     allocator: std.mem.Allocator,
     name_buf: []u8,
     name_buf_len: usize,
@@ -80,11 +78,11 @@ pub const ColDescription = struct {
     nullable: c_short,
 
     pub fn init(allocator: std.mem.Allocator) !ColDescription {
-        const name_buf = try allocator.alloc(u8, name_buf_len);
+        const name_buf = try allocator.alloc(u8, 256);
         return .{
             .allocator = allocator,
             .name_buf = name_buf,
-            .name_buf_len = name_buf_len,
+            .name_buf_len = name_buf.len,
             .data_type = -1,
             .column_size = 0,
             .decimal_digits = -1,

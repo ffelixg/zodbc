@@ -18,7 +18,7 @@ handler: Handle,
 pub fn init(odbc_version: AttributeValue.OdbcVersion) !Self {
     const handler = try Handle.init(.ENV, null);
     const env = Self{ .handler = handler };
-    try env.setEnvAttr(.{ .OdbcVersion = odbc_version });
+    try env.setEnvAttr(.{ .odbc_version = odbc_version });
     return env;
 }
 

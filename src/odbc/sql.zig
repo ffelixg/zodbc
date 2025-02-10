@@ -380,7 +380,7 @@ pub const SqlState = enum {
     CorruptFileDataSource,
 
     fn toError(sql_state: SqlState) SqlStateError {
-        inline for (@typeInfo(SqlStateError).ErrorSet.?) |error_field| {
+        inline for (@typeInfo(SqlStateError).error_set.?) |error_field| {
             if (std.mem.eql(u8, error_field.name, @tagName(sql_state))) {
                 // return @Type(std.builtin.Type{ .Error = error_field });
                 return @field(SqlStateError, error_field.name);
@@ -395,7 +395,7 @@ pub const SqlStateError = EnumError(SqlState);
 
 fn EnumError(comptime E: type) type {
     switch (@typeInfo(E)) {
-        .Enum => {
+        .@"enum" => {
             const tag_count = std.meta.fields(E).len;
             var error_tags: [tag_count]std.builtin.Type.Error = undefined;
 
@@ -403,7 +403,7 @@ fn EnumError(comptime E: type) type {
                 error_tags[index] = .{ .name = enum_field.name };
             }
 
-            const err_set: std.builtin.Type = .{ .ErrorSet = error_tags[0..] };
+            const err_set: std.builtin.Type = .{ .error_set = error_tags[0..] };
             return @Type(err_set);
         },
         else => @compileError("EnumError only accepts enum types."),
