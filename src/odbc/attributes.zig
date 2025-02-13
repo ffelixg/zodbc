@@ -398,6 +398,60 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
 };
 
 //
+// Statement
+// https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlsetstmtattr-function?view=sql-server-ver16
+//
+
+pub const StmtAttrHandle = enum(u16) {
+    app_param_desc = c.SQL_ATTR_APP_PARAM_DESC,
+    app_row_desc = c.SQL_ATTR_APP_ROW_DESC,
+    imp_param_desc = c.SQL_ATTR_IMP_PARAM_DESC,
+    imp_row_desc = c.SQL_ATTR_IMP_ROW_DESC,
+};
+
+pub const StmtAttrU16Ptr = enum(u16) {
+    param_operation_ptr = c.SQL_ATTR_PARAM_OPERATION_PTR,
+    param_status_ptr = c.SQL_ATTR_PARAM_STATUS_PTR,
+    row_operation_ptr = c.SQL_ATTR_ROW_OPERATION_PTR,
+    row_status_ptr = c.SQL_ATTR_ROW_STATUS_PTR,
+};
+
+pub const StmtAttrU64Ptr = enum(u16) {
+    param_bind_offset_ptr = c.SQL_ATTR_PARAM_BIND_OFFSET_PTR,
+    params_processed_ptr = c.SQL_ATTR_PARAMS_PROCESSED_PTR,
+    row_bind_offset_ptr = c.SQL_ATTR_ROW_BIND_OFFSET_PTR,
+    rows_fetched_ptr = c.SQL_ATTR_ROWS_FETCHED_PTR,
+};
+
+//
+// TODO
+// SQL_ATTR_ASYNC_ENABLE (ODBC 1.0) A SQLULEN value that specifies whether a function called with the specified statement is executed asynchronously:
+// SQL_ATTR_ASYNC_STMT_EVENT (ODBC 3.8) A SQLPOINTER value that is an event handle.
+// SQL_ATTR_ASYNC_STMT_PCALLBACK (ODBC 3.8) A SQLPOINTER to the asynchronous callback function.
+// SQL_ATTR_ASYNC_STMT_PCONTEXT (ODBC 3.8) A SQLPOINTER to the context structure
+// SQL_ATTR_CONCURRENCY (ODBC 2.0) An SQLULEN value that specifies the cursor concurrency:
+// SQL_ATTR_CURSOR_SCROLLABLE (ODBC 3.0) An SQLULEN value that specifies the level of support that the application requires. Setting this attribute affects subsequent calls to SQLExecDirect and SQLExecute.
+// SQL_ATTR_CURSOR_SENSITIVITY (ODBC 3.0) An SQLULEN value that specifies whether cursors on the statement handle make visible the changes made to a result set by another cursor. Setting this attribute affects subsequent calls to SQLExecDirect and SQLExecute. An application can read back the value of this attribute to obtain its initial state or its state as most recently set by the application.
+// SQL_ATTR_CURSOR_TYPE (ODBC 2.0) An SQLULEN value that specifies the cursor type:
+// SQL_ATTR_ENABLE_AUTO_IPD (ODBC 3.0) An SQLULEN value that specifies whether automatic population of the IPD is performed:
+// SQL_ATTR_KEYSET_SIZE (ODBC 2.0) An SQLULEN that specifies the number of rows in the keyset for a keyset-driven cursor. If the keyset size is 0 (the default), the cursor is fully keyset-driven. If the keyset size is greater than 0, the cursor is mixed (keyset-driven within the keyset and dynamic outside of the keyset). The default keyset size is 0. For more information about keyset-driven cursors, see Keyset-Driven Cursors.
+// SQL_ATTR_MAX_LENGTH (ODBC 1.0) An SQLULEN value that specifies the maximum amount of data that the driver returns from a character or binary column. If ValuePtr is less than the length of the available data, SQLFetch or SQLGetData truncates the data and returns SQL_SUCCESS. If ValuePtr is 0 (the default), the driver attempts to return all available data.
+// SQL_ATTR_MAX_ROWS (ODBC 1.0) An SQLULEN value corresponding to the maximum number of rows to return to the application for a SELECT statement. If *ValuePtr equals 0 (the default), the driver returns all rows.
+// SQL_ATTR_METADATA_ID (ODBC 3.0) An SQLULEN value that determines how the string arguments of catalog functions are treated.
+// SQL_ATTR_NOSCAN (ODBC 1.0) An SQLULEN value that indicates whether the driver should scan SQL strings for escape sequences:
+// SQL_ATTR_PARAM_BIND_TYPE (ODBC 3.0) An SQLULEN value that indicates the binding orientation to be used for dynamic parameters.
+// SQL_ATTR_PARAMSET_SIZE (ODBC 3.0) An SQLULEN value that specifies the number of values for each parameter. If SQL_ATTR_PARAMSET_SIZE is greater than 1, SQL_DESC_DATA_PTR, SQL_DESC_INDICATOR_PTR, and SQL_DESC_OCTET_LENGTH_PTR of the APD point to arrays. The cardinality of each array is equal to the value of this field.
+// SQL_ATTR_QUERY_TIMEOUT (ODBC 1.0) An SQLULEN value corresponding to the number of seconds to wait for a SQL statement to execute before returning to the application. If ValuePtr is equal to 0 (default), there is no timeout.
+// SQL_ATTR_RETRIEVE_DATA (ODBC 2.0) An SQLULEN value:
+// SQL_ATTR_ROW_ARRAY_SIZE (ODBC 3.0) An SQLULEN value that specifies the number of rows returned by each call to SQLFetch or SQLFetchScroll. It is also the number of rows in a bookmark array used in a bulk bookmark operation in SQLBulkOperations. The default value is 1.
+// SQL_ATTR_ROW_BIND_TYPE (ODBC 1.0) An SQLULEN value that sets the binding orientation to be used when SQLFetch or SQLFetchScroll is called on the associated statement. Column-wise binding is selected by setting the value to SQL_BIND_BY_COLUMN. Row-wise binding is selected by setting the value to the length of a structure or an instance of a buffer into which result columns will be bound.
+// SQL_ATTR_ROW_NUMBER (ODBC 2.0) An SQLULEN value that is the number of the current row in the entire result set. If the number of the current row cannot be determined or there is no current row, the driver returns 0.
+// SQL_ATTR_SIMULATE_CURSOR (ODBC 2.0) An SQLULEN value that specifies whether drivers that simulate positioned update and delete statements guarantee that such statements affect only one single row.
+// SQL_ATTR_USE_BOOKMARKS (ODBC 2.0) An SQLULEN value that specifies whether an application will use bookmarks with a cursor:
+
+// SQL_ATTR_FETCH_BOOKMARK_PTR (ODBC 3.0) A SQLLEN * that points to a binary bookmark value. When SQLFetchScroll is called with fFetchOrientation equal to SQL_FETCH_BOOKMARK, the driver picks up the bookmark value from this field. This field defaults to a null pointer. For more information, see Scrolling by Bookmark.
+
+//
 // Column
 //
 
@@ -492,3 +546,57 @@ pub const ColAttributeEnumValue = union(ColAttributeEnum) {
         };
     }
 };
+
+//
+// Descriptors
+//
+
+pub const DescFieldI16 = enum(u15) {
+    alloc_type = c.SQL_DESC_ALLOC_TYPE, // ARD: R APD: R IRD: R IPD: R
+    count = c.SQL_DESC_COUNT, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    concise_type = c.SQL_DESC_CONCISE_TYPE, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE, // ARD: Unused APD: Unused IRD: R IPD: R
+    nullable = c.SQL_DESC_NULLABLE, // ARD: Unused APD: Unused IRD: R IPD: R
+    parameter_type = c.SQL_DESC_PARAMETER_TYPE, // ARD: Unused APD: Unused IRD: Unused IPD: R/W
+    precision = c.SQL_DESC_PRECISION, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    rowver = c.SQL_DESC_ROWVER, // ARD: Unused
+    scale = c.SQL_DESC_SCALE, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    searchable = c.SQL_DESC_SEARCHABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
+    type = c.SQL_DESC_TYPE, // ARD: R/W APD: R/W IRD: R IPD: R/W
+    unnamed = c.SQL_DESC_UNNAMED, // ARD: Unused APD: Unused IRD: R IPD: R/W
+    unsigned = c.SQL_DESC_UNSIGNED, // ARD: Unused APD: Unused IRD: R IPD: R
+    updatable = c.SQL_DESC_UPDATABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
+};
+
+// pub const DescFieldMisc = enum(u15) {
+//     indicator_ptr = c.SQL_DESC_INDICATOR_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// };
+
+// TODO
+// SQL_DESC_ARRAY_SIZE                             SQLULEN         ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_ARRAY_STATUS_PTR                       SQLUSMALLINT *  ARD: R/W APD: R/W IRD: R/W IPD: R/W
+// SQL_DESC_BIND_OFFSET_PTR                        SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_BIND_TYPE                              SQLINTEGER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_ROWS_PROCESSED_PTR                     SQLULEN *       ARD: Unused APD: Unused IRD: R/W IPD: R/W
+// SQL_DESC_AUTO_UNIQUE_VALUE                      SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_BASE_COLUMN_NAME                       SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_BASE_TABLE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_CASE_SENSITIVE                         SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: R
+// SQL_DESC_CATALOG_NAME                           SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_DATA_PTR                               SQLPOINTER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_DATETIME_INTERVAL_PRECISION            SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
+// SQL_DESC_DISPLAY_SIZE                           SQLLEN          ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_INDICATOR_PTR                          SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_LABEL                                  SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_LENGTH                                 SQLULEN         ARD: R/W APD: R/W IRD: R IPD: R/W
+// SQL_DESC_LITERAL_PREFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_LITERAL_SUFFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_LOCAL_TYPE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R
+// SQL_DESC_NAME                                   SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R/W
+// SQL_DESC_NUM_PREC_RADIX                         SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
+// SQL_DESC_OCTET_LENGTH                           SQLLEN          ARD: R/W APD: R/W IRD: R IPD: R/W
+// SQL_DESC_OCTET_LENGTH_PTR                       SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
+// SQL_DESC_SCHEMA_NAME                            SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_TABLE_NAME                             SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
+// SQL_DESC_TYPE_NAME                              SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R

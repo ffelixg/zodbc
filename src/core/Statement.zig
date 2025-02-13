@@ -286,12 +286,12 @@ pub fn bindCol2(
     c_type: types.CDataType,
     buffer: *anyopaque,
     buffer_length: i64,
-    indicator: *i64,
+    indicator: [*]i64,
 ) !void {
     return switch (sql.c.SQLBindCol(
         self.handle(),
         col_number,
-        c_type,
+        @intFromEnum(c_type),
         buffer,
         buffer_length,
         indicator,
@@ -352,8 +352,87 @@ pub fn setStmtAttr(self: Self) !void {
     _ = self;
 }
 
+pub fn setStmtAttrHandle(self: Self, ptr_kind: attrs.StmtAttrHandle, ptr: *anyopaque) !void {
+    return self._setStmtAttrPtr(ptr_kind, ptr);
+}
+pub fn setStmtAttrU64Ptr(self: Self, ptr_kind: attrs.StmtAttrU64Ptr, ptr: [*]u64) !void {
+    return self._setStmtAttrPtr(ptr_kind, ptr);
+}
+pub fn setStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr, ptr: [*]u16) !void {
+    return self._setStmtAttrPtr(ptr_kind, ptr);
+}
+
+fn _setStmtAttrPtr(self: Self, ptr_kind: anytype, ptr: anytype) !void {
+    return switch (sql.c.SQLSetStmtAttr(
+        self.handle(),
+        @intFromEnum(ptr_kind),
+        ptr,
+        sql.c.SQL_IS_POINTER,
+    )) {
+        sqlret.success => {},
+        sqlret.success_with_info => error.Info,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn getStmtAttrHandle(self: Self, ptr_kind: attrs.StmtAttrHandle) !*anyopaque {
+    return self._getStmtAttrPtr(ptr_kind, *anyopaque);
+}
+pub fn getStmtAttrU64Ptr(self: Self, ptr_kind: attrs.StmtAttrU64Ptr) ![*]u64 {
+    return self._getStmtAttrPtr(ptr_kind, [*]u64);
+}
+pub fn getStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr) ![*]u16 {
+    return self._getStmtAttrPtr(ptr_kind, [*]u16);
+}
+
+fn _getStmtAttrPtr(self: Self, ptr_kind: anytype, T: type) !T {
+    // var ptr: ?T = null;
+    var ptr: ?*anyopaque = null;
+    return switch (sql.c.SQLGetStmtAttr(
+        self.handle(),
+        @intFromEnum(ptr_kind),
+        @ptrCast(&ptr),
+        // &ptr,
+        // @sizeOf(T),
+        0,
+        sql.c.SQL_IS_POINTER,
+    )) {
+        // sqlret.success => ptr orelse unreachable,
+        sqlret.success => @alignCast(@ptrCast(ptr orelse unreachable)),
+        sqlret.success_with_info => error.Info,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
 pub fn getStmtAttr(self: Self) !void {
     _ = self;
+}
+
+pub fn setDescField(self: Self, col_number: i16, descriptor_kind: attrs.StmtAttrHandle, field: attrs.DescFieldI16, value: i16) !void {
+    const descriptor_handle = try self.getStmtAttrHandle(descriptor_kind);
+    const value_as_ptr: *anyopaque = blk: {
+        @setRuntimeSafety(false);
+        const as_usize: usize = @intCast(value);
+        break :blk @ptrFromInt(as_usize);
+    };
+    return switch (sql.c.SQLSetDescField(
+        descriptor_handle,
+        col_number,
+        @intFromEnum(field),
+        // @ptrFromInt(@as(isize, value)),
+        value_as_ptr,
+        0,
+    )) {
+        sqlret.success => {},
+        sqlret.success_with_info => error.Info,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn moreResults(self: Self) !void {
