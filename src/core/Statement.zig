@@ -9,22 +9,13 @@ const Connection = @import("Connection.zig");
 const odbc = @import("odbc");
 const attrs = odbc.attributes;
 const rc = odbc.return_codes;
+const sqlret = odbc.return_codes.sqlret;
 const types = odbc.types;
 const sql = odbc.sql;
 
 const Self = @This();
 
 handler: Handle,
-
-const sqlret = struct {
-    const success = sql.c.SQL_SUCCESS;
-    const success_with_info = sql.c.SQL_SUCCESS_WITH_INFO;
-    const err = sql.c.SQL_ERROR;
-    const invalid_handle = sql.c.SQL_INVALID_HANDLE;
-    const still_executing = sql.c.SQL_STILL_EXECUTING;
-    const need_data = sql.c.SQL_NEED_DATA;
-    const no_data_found = sql.c.SQL_NO_DATA_FOUND;
-};
 
 pub fn init(con: Connection) !Self {
     const handler = try Handle.init(.STMT, con.handle());
@@ -410,29 +401,6 @@ fn _getStmtAttrPtr(self: Self, ptr_kind: anytype, T: type) !T {
 
 pub fn getStmtAttr(self: Self) !void {
     _ = self;
-}
-
-pub fn setDescField(self: Self, col_number: i16, descriptor_kind: attrs.StmtAttrHandle, field: attrs.DescFieldI16, value: i16) !void {
-    const descriptor_handle = try self.getStmtAttrHandle(descriptor_kind);
-    const value_as_ptr: *anyopaque = blk: {
-        @setRuntimeSafety(false);
-        const as_usize: usize = @intCast(value);
-        break :blk @ptrFromInt(as_usize);
-    };
-    return switch (sql.c.SQLSetDescField(
-        descriptor_handle,
-        col_number,
-        @intFromEnum(field),
-        // @ptrFromInt(@as(isize, value)),
-        value_as_ptr,
-        0,
-    )) {
-        sqlret.success => {},
-        sqlret.success_with_info => error.Info,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
 }
 
 pub fn moreResults(self: Self) !void {

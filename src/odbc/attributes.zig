@@ -569,9 +569,10 @@ pub const DescFieldI16 = enum(u15) {
     updatable = c.SQL_DESC_UPDATABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
 };
 
-// pub const DescFieldMisc = enum(u15) {
-//     indicator_ptr = c.SQL_DESC_INDICATOR_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
-// };
+pub const DescFieldMisc = enum(u15) {
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+    data_ptr = c.SQL_DESC_DATA_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+};
 
 // TODO
 // SQL_DESC_ARRAY_SIZE                             SQLULEN         ARD: R/W APD: R/W IRD: Unused IPD: Unused
@@ -584,7 +585,6 @@ pub const DescFieldI16 = enum(u15) {
 // SQL_DESC_BASE_TABLE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_CASE_SENSITIVE                         SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: R
 // SQL_DESC_CATALOG_NAME                           SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_DATA_PTR                               SQLPOINTER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_DATETIME_INTERVAL_PRECISION            SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
 // SQL_DESC_DISPLAY_SIZE                           SQLLEN          ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_INDICATOR_PTR                          SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused

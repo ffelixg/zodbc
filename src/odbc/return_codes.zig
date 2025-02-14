@@ -4,6 +4,26 @@ pub const c = @cImport({
     @cInclude("sqlext.h");
 });
 
+pub const sqlret = struct {
+    pub const success = c.SQL_SUCCESS;
+    pub const success_with_info = c.SQL_SUCCESS_WITH_INFO;
+    pub const err = c.SQL_ERROR;
+    pub const invalid_handle = c.SQL_INVALID_HANDLE;
+    pub const still_executing = c.SQL_STILL_EXECUTING;
+    pub const need_data = c.SQL_NEED_DATA;
+    pub const no_data_found = c.SQL_NO_DATA_FOUND;
+};
+
+pub fn retconv1(rc: i32) !void {
+    return switch (rc) {
+        sqlret.success => {},
+        sqlret.success_with_info => error.Info,
+        sqlret.err => error.Error,
+        sqlret.invalid_handle => error.InvalidHandle,
+        else => unreachable,
+    };
+}
+
 pub const AllocHandleRC = enum(c_short) {
     SUCCESS = c.SQL_SUCCESS,
     SUCCESS_WITH_INFO = c.SQL_SUCCESS_WITH_INFO,
