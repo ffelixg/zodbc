@@ -34,30 +34,59 @@ pub fn getLastError(self: Self) sql.LastError {
     return self.handler.getLastError();
 }
 
-pub fn setField(self: Self, col_number: i16, field: attrs.DescFieldI16, value: i16) !void {
-    const value_as_ptr: *anyopaque = blk: {
-        @setRuntimeSafety(false);
-        const as_usize: usize = @intCast(value);
-        std.debug.print("as_usize: {}\n", .{as_usize});
-        break :blk @ptrFromInt(as_usize);
-    };
-    return _setField(self, col_number, field, value_as_ptr, @sizeOf(i16));
+fn _intToPtr(value: anytype) *anyopaque {
+    @setRuntimeSafety(false);
+    const as_usize: usize = @intCast(value);
+    return @ptrFromInt(as_usize);
 }
 
-fn _setField(self: Self, col_number: i16, field: anytype, value_ptr: *anyopaque, value_size: i32) !void {
-    return switch (sql.c.SQLSetDescField(
+fn _PtrToInt(T: type, ptr: ?*anyopaque) T {
+    @setRuntimeSafety(false);
+    const as_usize: usize = @intFromPtr(ptr);
+    return @intCast(as_usize);
+}
+
+pub fn setI16Field(self: Self, col_number: i16, field: attrs.DescFieldI16, value: i16) !void {
+    try retconv1(sql.c.SQLSetDescField(
         self.handle(),
         col_number,
         @intFromEnum(field),
-        value_ptr,
-        value_size,
-    )) {
-        sqlret.success => {},
-        sqlret.success_with_info => error.Info,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
+        _intToPtr(value),
+        sql.c.SQL_IS_SMALLINT,
+    ));
+}
+
+pub fn setU64Field(self: Self, col_number: i16, attr: attrs.DescFieldU64, value: u64) !void {
+    try retconv1(sql.c.SQLSetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        _intToPtr(value),
+        sql.c.SQL_IS_UINTEGER,
+    ));
+}
+
+pub fn setI64Field(self: Self, col_number: i16, attr: attrs.DescFieldI64, value: i64) !void {
+    try retconv1(sql.c.SQLSetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        _intToPtr(value),
+        sql.c.SQL_IS_INTEGER,
+    ));
+}
+
+pub fn getU64Field(self: Self, col_number: i16, attr: attrs.DescFieldU64) !u64 {
+    var value_ptr: ?*anyopaque = null;
+    try retconv1(sql.c.SQLGetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        @ptrCast(&value_ptr),
+        sql.c.SQL_IS_UINTEGER,
+        null,
+    ));
+    return _PtrToInt(u64, value_ptr);
 }
 
 pub fn getDataPtr(self: Self, col_number: i16) !*anyopaque {
@@ -79,6 +108,36 @@ pub fn setDataPtr(self: Self, col_number: i16, data_ptr: *anyopaque) !void {
         col_number,
         @intFromEnum(attrs.DescFieldMisc.data_ptr),
         data_ptr,
+        sql.c.SQL_IS_POINTER,
+    ));
+}
+
+pub fn getIndicatorPtr(self: Self, col_number: i16) ![*]i64 {
+    var indicator_ptr: ?[*]i64 = null;
+    try retconv1(sql.c.SQLGetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attrs.DescFieldMisc.indicator_ptr),
+        @ptrCast(&indicator_ptr),
+        sql.c.SQL_IS_POINTER,
+        null,
+    ));
+    return indicator_ptr orelse unreachable;
+}
+
+pub fn setIndicatorPtr(self: Self, col_number: i16, indicator_ptr: [*]i64) !void {
+    try retconv1(sql.c.SQLSetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attrs.DescFieldMisc.indicator_ptr),
+        @ptrCast(indicator_ptr),
+        sql.c.SQL_IS_POINTER,
+    ));
+    try retconv1(sql.c.SQLSetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attrs.DescFieldMisc.octet_length_ptr),
+        @ptrCast(indicator_ptr),
         sql.c.SQL_IS_POINTER,
     ));
 }

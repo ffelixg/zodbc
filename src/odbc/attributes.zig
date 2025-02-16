@@ -569,13 +569,23 @@ pub const DescFieldI16 = enum(u15) {
     updatable = c.SQL_DESC_UPDATABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
 };
 
+pub const DescFieldU64 = enum(u15) {
+    array_size = c.SQL_DESC_ARRAY_SIZE, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+    length = c.SQL_DESC_LENGTH, // ARD: R/W APD: R/W IRD: R IPD: R/W
+};
+
 pub const DescFieldMisc = enum(u15) {
     indicator_ptr = c.SQL_DESC_INDICATOR_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
     data_ptr = c.SQL_DESC_DATA_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
+};
+
+pub const DescFieldI64 = enum(u15) {
+    display_size = c.SQL_DESC_DISPLAY_SIZE, // ARD: Unused APD: Unused IRD: R IPD: Unused
+    octet_length = c.SQL_DESC_OCTET_LENGTH, // ARD: R/W APD: R/W IRD: R IPD: R/W
 };
 
 // TODO
-// SQL_DESC_ARRAY_SIZE                             SQLULEN         ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_ARRAY_STATUS_PTR                       SQLUSMALLINT *  ARD: R/W APD: R/W IRD: R/W IPD: R/W
 // SQL_DESC_BIND_OFFSET_PTR                        SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_BIND_TYPE                              SQLINTEGER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
@@ -586,16 +596,12 @@ pub const DescFieldMisc = enum(u15) {
 // SQL_DESC_CASE_SENSITIVE                         SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: R
 // SQL_DESC_CATALOG_NAME                           SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_DATETIME_INTERVAL_PRECISION            SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
-// SQL_DESC_DISPLAY_SIZE                           SQLLEN          ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_INDICATOR_PTR                          SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_LABEL                                  SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_LENGTH                                 SQLULEN         ARD: R/W APD: R/W IRD: R IPD: R/W
 // SQL_DESC_LITERAL_PREFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_LITERAL_SUFFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_LOCAL_TYPE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R
 // SQL_DESC_NAME                                   SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R/W
 // SQL_DESC_NUM_PREC_RADIX                         SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
-// SQL_DESC_OCTET_LENGTH                           SQLLEN          ARD: R/W APD: R/W IRD: R IPD: R/W
 // SQL_DESC_OCTET_LENGTH_PTR                       SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_SCHEMA_NAME                            SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_TABLE_NAME                             SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
