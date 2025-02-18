@@ -546,6 +546,109 @@ pub const ColAttributeEnumValue = union(ColAttributeEnum) {
         };
     }
 };
+/// The integer codes for ODBC compliant column attributes
+pub const ColAttribute = enum(u16) {
+    base_column_name = c.SQL_DESC_BASE_COLUMN_NAME,
+    base_table_name = c.SQL_DESC_BASE_TABLE_NAME,
+    catalog_name = c.SQL_DESC_CATALOG_NAME,
+    label = c.SQL_DESC_LABEL,
+    literal_prefix = c.SQL_DESC_LITERAL_PREFIX,
+    literal_suffix = c.SQL_DESC_LITERAL_SUFFIX,
+    local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
+    name = c.SQL_DESC_NAME,
+    schema_name = c.SQL_DESC_SCHEMA_NAME,
+    table_name = c.SQL_DESC_TABLE_NAME,
+    type_name = c.SQL_DESC_TYPE_NAME,
+    count = c.SQL_DESC_COUNT,
+    display_size = c.SQL_DESC_DISPLAY_SIZE,
+    length = c.SQL_DESC_LENGTH,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    auto_unique_value = c.SQL_DESC_AUTO_UNIQUE_VALUE,
+    case_sensitive = c.SQL_DESC_CASE_SENSITIVE,
+    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE,
+    unsigned = c.SQL_DESC_UNSIGNED,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    nullable = c.SQL_DESC_NULLABLE,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    searchable = c.SQL_DESC_SEARCHABLE,
+    type = c.SQL_DESC_TYPE,
+    unnamed = c.SQL_DESC_UNNAMED,
+    updatable = c.SQL_DESC_UPDATABLE,
+};
+
+pub const ColAttributeValue = union(ColAttribute) {
+    base_column_name: []const u8,
+    base_table_name: []const u8,
+    catalog_name: []const u8,
+    label: []const u8,
+    literal_prefix: []const u8,
+    literal_suffix: []const u8,
+    local_type_name: []const u8,
+    name: []const u8,
+    schema_name: []const u8,
+    table_name: []const u8,
+    type_name: []const u8,
+    count: i64,
+    display_size: i64,
+    length: i64,
+    octet_length: i64,
+    precision: i64,
+    scale: i64,
+    auto_unique_value: bool,
+    case_sensitive: bool,
+    fixed_prec_scale: bool,
+    unsigned: bool,
+    concise_type: types.SQLDataType,
+    nullable: Nullable,
+    num_prec_radix: NumPrecRadix,
+    searchable: Searchable,
+    type: types.SQLDataType,
+    unnamed: Unnamed,
+    updatable: Updatable,
+
+    const Nullable = enum(i64) {
+        nullable = c.SQL_NULLABLE,
+        no_nulls = c.SQL_NO_NULLS,
+        nullable_unknown = c.SQL_NULLABLE_UNKNOWN,
+    };
+    const NumPrecRadix = enum(i64) {
+        approximate_numeric = 2,
+        exact_numeric = 10,
+        non_numeric = 0,
+    };
+    const Searchable = enum(i64) {
+        unsearchable = c.SQL_PRED_NONE,
+        searchable_like_only = c.SQL_PRED_CHAR,
+        searchable_no_like = c.SQL_PRED_BASIC,
+        searchable = c.SQL_PRED_SEARCHABLE,
+    };
+    const Unnamed = enum(i64) {
+        named = c.SQL_NAMED,
+        unnamed = c.SQL_UNNAMED,
+    };
+    const Updatable = enum(i64) {
+        read_only = c.SQL_ATTR_READONLY,
+        write = c.SQL_ATTR_WRITE,
+        unknown = c.SQL_ATTR_READWRITE_UNKNOWN,
+    };
+
+    pub fn init(
+        attr: ColAttributeEnum,
+        num_val: i64,
+    ) !ColAttributeEnumValue {
+        return switch (attr) {
+            .concise_type => .{ .concise_type = @enumFromInt(num_val) },
+            .nullable => .{ .nullable = @enumFromInt(num_val) },
+            .num_prec_radix => .{ .num_prec_radix = @enumFromInt(num_val) },
+            .searchable => .{ .searchable = @enumFromInt(num_val) },
+            .type => .{ .type = @enumFromInt(num_val) },
+            .unnamed => .{ .unnamed = @enumFromInt(num_val) },
+            .updatable => .{ .updatable = @enumFromInt(num_val) },
+        };
+    }
+};
 
 //
 // Descriptors
