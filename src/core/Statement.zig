@@ -173,43 +173,28 @@ pub fn colAttributeBool(
     };
 }
 
-pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribute, allocator: ?std.mem.Allocator) !@FieldType(attrs.ColAttributeValue, @tagName(attr)) {
+pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribute) !@FieldType(attrs.ColAttributeValue, @tagName(attr)) {
     const T = @FieldType(attrs.ColAttributeValue, @tagName(attr));
-    if (@typeInfo(T) == .pointer) {
-        var odbc_buf: [4000]u8 = undefined;
-        var str_len: i16 = 0;
-        try retconv1(sql.c.SQLColAttribute(
-            self.handle(),
-            col_number,
-            @intFromEnum(attr),
-            &odbc_buf,
-            @intCast(odbc_buf.len),
-            &str_len,
-            null,
-        ));
-        return try allocator.?.dupe(u8, odbc_buf[0..@intCast(str_len)]);
-    } else {
-        var num_attr: i64 = 0;
-        try retconv1(sql.c.SQLColAttribute(
-            self.handle(),
-            col_number,
-            @intFromEnum(attr),
-            null,
-            0,
-            null,
-            &num_attr,
-        ));
-        return switch (@typeInfo(T)) {
-            .bool => switch (num_attr) {
-                sql.c.SQL_TRUE => true,
-                sql.c.SQL_FALSE => false,
-                else => unreachable,
-            },
-            .int => num_attr,
-            .@"enum" => @enumFromInt(num_attr),
+    var num_attr: i64 = 0;
+    try retconv1(sql.c.SQLColAttribute(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        null,
+        0,
+        null,
+        &num_attr,
+    ));
+    return switch (@typeInfo(T)) {
+        .bool => switch (num_attr) {
+            sql.c.SQL_TRUE => true,
+            sql.c.SQL_FALSE => false,
             else => unreachable,
-        };
-    }
+        },
+        .int => num_attr,
+        .@"enum" => @enumFromInt(num_attr),
+        else => unreachable,
+    };
 }
 
 pub fn colAttributes(self: Self) !void {

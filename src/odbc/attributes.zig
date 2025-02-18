@@ -548,17 +548,6 @@ pub const ColAttributeEnumValue = union(ColAttributeEnum) {
 };
 /// The integer codes for ODBC compliant column attributes
 pub const ColAttribute = enum(u16) {
-    base_column_name = c.SQL_DESC_BASE_COLUMN_NAME,
-    base_table_name = c.SQL_DESC_BASE_TABLE_NAME,
-    catalog_name = c.SQL_DESC_CATALOG_NAME,
-    label = c.SQL_DESC_LABEL,
-    literal_prefix = c.SQL_DESC_LITERAL_PREFIX,
-    literal_suffix = c.SQL_DESC_LITERAL_SUFFIX,
-    local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
-    name = c.SQL_DESC_NAME,
-    schema_name = c.SQL_DESC_SCHEMA_NAME,
-    table_name = c.SQL_DESC_TABLE_NAME,
-    type_name = c.SQL_DESC_TYPE_NAME,
     count = c.SQL_DESC_COUNT,
     display_size = c.SQL_DESC_DISPLAY_SIZE,
     length = c.SQL_DESC_LENGTH,
@@ -579,17 +568,6 @@ pub const ColAttribute = enum(u16) {
 };
 
 pub const ColAttributeValue = union(ColAttribute) {
-    base_column_name: []const u8,
-    base_table_name: []const u8,
-    catalog_name: []const u8,
-    label: []const u8,
-    literal_prefix: []const u8,
-    literal_suffix: []const u8,
-    local_type_name: []const u8,
-    name: []const u8,
-    schema_name: []const u8,
-    table_name: []const u8,
-    type_name: []const u8,
     count: i64,
     display_size: i64,
     length: i64,
