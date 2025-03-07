@@ -149,6 +149,52 @@ pub const SQLDataType = enum(c_short) {
     INTERVAL_MINUTE_TO_SECOND = c.SQL_INTERVAL_MINUTE_TO_SECOND,
 };
 
+pub const OdbcFormat = enum(i16) {
+    char = c.SQL_C_CHAR,
+    wchar = c.SQL_C_WCHAR,
+    sshort = c.SQL_C_SSHORT,
+    ushort = c.SQL_C_USHORT,
+    slong = c.SQL_C_SLONG,
+    ulong = c.SQL_C_ULONG,
+    float = c.SQL_C_FLOAT,
+    double = c.SQL_C_DOUBLE,
+    bit = c.SQL_C_BIT,
+    stinyint = c.SQL_C_STINYINT,
+    utinyint = c.SQL_C_UTINYINT,
+    sbigint = c.SQL_C_SBIGINT,
+    ubigint = c.SQL_C_UBIGINT,
+    binary = c.SQL_C_BINARY,
+    type_date = c.SQL_C_TYPE_DATE,
+    type_time = c.SQL_C_TYPE_TIME,
+    type_timestamp = c.SQL_C_TYPE_TIMESTAMP,
+    numeric = c.SQL_C_NUMERIC,
+    guid = c.SQL_C_GUID,
+
+    pub fn Type(fmt: OdbcFormat) type {
+        return switch (fmt) {
+            .char => c.SQLCHAR,
+            .wchar => c.SQLWCHAR,
+            .sshort => c.SQLSMALLINT,
+            .ushort => c.SQLUSMALLINT,
+            .slong => c.SQLINTEGER,
+            .ulong => c.SQLUINTEGER,
+            .float => c.SQLREAL,
+            .double => c.SQLDOUBLE,
+            .bit => c.SQLCHAR,
+            .stinyint => c.SQLSCHAR,
+            .utinyint => c.SQLCHAR,
+            .sbigint => c.SQLBIGINT,
+            .ubigint => c.SQLUBIGINT,
+            .binary => c.SQLCHAR,
+            .type_date => c.SQL_DATE_STRUCT,
+            .type_time => c.SQL_TIME_STRUCT,
+            .type_timestamp => c.SQL_TIMESTAMP_STRUCT,
+            .numeric => c.SQL_NUMERIC_STRUCT,
+            .guid => c.SQLGUID,
+        };
+    }
+};
+
 pub const CDataType = enum(c_short) {
     UTINYINT = c.SQL_C_UTINYINT,
     STINYINT = c.SQL_C_STINYINT,
