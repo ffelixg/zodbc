@@ -355,13 +355,9 @@ pub fn execute(self: Self) !void {
 }
 
 pub fn execDirect(self: Self, stmt_str: []const u8) !void {
-    return switch (sql.SQLExecDirect(self.handle(), stmt_str)) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => ExecDirectError.Error,
-        .INVALID_HANDLE => ExecDirectError.InvalidHandle,
-        .NEED_DATA => ExecDirectError.NeedData,
-        .NO_DATA_FOUND => ExecDirectError.NoDataFound,
-    };
+    const conv = try std.unicode.utf8ToUtf16LeAllocZ(std.heap.c_allocator, stmt_str);
+    defer std.heap.c_allocator.free(conv);
+    try retconv1(sql.c.SQLExecDirectW(self.handle(), conv.ptr, @intCast(conv.len)));
 }
 
 pub fn setStmtAttr(self: Self) !void {
