@@ -666,11 +666,48 @@ pub const DescFieldI64 = enum(u15) {
     octet_length = c.SQL_DESC_OCTET_LENGTH, // ARD: R/W APD: R/W IRD: R IPD: R/W
 };
 
+pub const DescField = enum(u15) {
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    array_size = c.SQL_DESC_ARRAY_SIZE,
+    length = c.SQL_DESC_LENGTH,
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
+    data_ptr = c.SQL_DESC_DATA_PTR,
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
+    display_size = c.SQL_DESC_DISPLAY_SIZE,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
+    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+};
+
+pub const DescFieldValue = extern union {
+    precision: i16,
+    scale: i16,
+    array_size: u64,
+    length: u64,
+    indicator_ptr: ?[*]i64,
+    data_ptr: ?[*]u8,
+    octet_length_ptr: ?[*]i64,
+    display_size: i64,
+    octet_length: i64,
+    array_status_ptr: ?[*]ArrayStatus,
+    bind_offset_ptr: ?[*]i64,
+    rows_processed_ptr: ?[*]u64,
+
+    pub const ArrayStatus = enum(u16) {
+        success = c.SQL_ROW_SUCCESS,
+        success_with_info = c.SQL_ROW_SUCCESS_WITH_INFO,
+        err = c.SQL_ROW_ERROR,
+        updated = c.SQL_ROW_UPDATED,
+        deleted = c.SQL_ROW_DELETED,
+        added = c.SQL_ROW_ADDED,
+        norow = c.SQL_ROW_NOROW,
+    };
+};
+
 // TODO
-// SQL_DESC_ARRAY_STATUS_PTR                       SQLUSMALLINT *  ARD: R/W APD: R/W IRD: R/W IPD: R/W
-// SQL_DESC_BIND_OFFSET_PTR                        SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_BIND_TYPE                              SQLINTEGER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
-// SQL_DESC_ROWS_PROCESSED_PTR                     SQLULEN *       ARD: Unused APD: Unused IRD: R/W IPD: R/W
 // SQL_DESC_AUTO_UNIQUE_VALUE                      SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_BASE_COLUMN_NAME                       SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_BASE_TABLE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
@@ -683,7 +720,6 @@ pub const DescFieldI64 = enum(u15) {
 // SQL_DESC_LOCAL_TYPE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R
 // SQL_DESC_NAME                                   SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R/W
 // SQL_DESC_NUM_PREC_RADIX                         SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
-// SQL_DESC_OCTET_LENGTH_PTR                       SQLLEN *        ARD: R/W APD: R/W IRD: Unused IPD: Unused
 // SQL_DESC_SCHEMA_NAME                            SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_TABLE_NAME                             SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
 // SQL_DESC_TYPE_NAME                              SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R

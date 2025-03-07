@@ -141,3 +141,39 @@ pub fn setIndicatorPtr(self: Self, col_number: i16, indicator_ptr: [*]i64) !void
         sql.c.SQL_IS_POINTER,
     ));
 }
+
+pub fn setField(self: Self, col_number: i16, comptime field: attrs.DescField, value: @FieldType(attrs.DescFieldValue, @tagName(field))) !void {
+    const as_union = @unionInit(attrs.DescFieldValue, @tagName(field), value);
+    const as_usize: usize = @bitCast(as_union);
+    try retconv1(sql.c.SQLSetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(field),
+        @ptrFromInt(as_usize),
+        0,
+    ));
+}
+
+pub fn getField(self: Self, col_number: i16, comptime attr: attrs.DescField) !@FieldType(attrs.DescFieldValue, @tagName(attr)) {
+    var value_ptr: ?*anyopaque = null;
+    try retconv1(sql.c.SQLGetDescField(
+        self.handle(),
+        col_number,
+        @intFromEnum(attr),
+        @ptrCast(&value_ptr),
+        0,
+        null,
+    ));
+    const T = @FieldType(attrs.DescFieldValue, @tagName(attr));
+    return switch (@typeInfo(T)) {
+        .bool => switch (@intFromPtr(value_ptr)) {
+            sql.c.SQL_TRUE => true,
+            sql.c.SQL_FALSE => false,
+            else => unreachable,
+        },
+        .int => _PtrToInt(T, value_ptr),
+        .@"enum" => @enumFromInt(value_ptr),
+        .optional, .pointer => @alignCast(@ptrCast(value_ptr)),
+        else => unreachable,
+    };
+}
