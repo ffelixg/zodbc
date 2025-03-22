@@ -10,6 +10,16 @@ pub const c = @cImport({
     @cInclude("sqlext.h");
 });
 
+pub const RowStatus = enum(u16) {
+    success = c.SQL_ROW_SUCCESS,
+    success_with_info = c.SQL_ROW_SUCCESS_WITH_INFO,
+    err = c.SQL_ROW_ERROR,
+    updated = c.SQL_ROW_UPDATED,
+    deleted = c.SQL_ROW_DELETED,
+    added = c.SQL_ROW_ADDED,
+    norow = c.SQL_ROW_NOROW,
+};
+
 //
 // Environment
 //
@@ -402,6 +412,53 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
 // https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlsetstmtattr-function?view=sql-server-ver16
 //
 
+pub const StmtAttr = enum(i32) {
+    app_param_desc = c.SQL_ATTR_APP_PARAM_DESC,
+    app_row_desc = c.SQL_ATTR_APP_ROW_DESC,
+    async_enable = c.SQL_ATTR_ASYNC_ENABLE,
+    async_stmt_event = c.SQL_ATTR_ASYNC_STMT_EVENT,
+    // async_stmt_pcallback = c.SQL_ATTR_ASYNC_STMT_PCALLBACK,
+    // async_stmt_pcontext = c.SQL_ATTR_ASYNC_STMT_PCONTEXT,
+    concurrency = c.SQL_ATTR_CONCURRENCY,
+    cursor_scrollable = c.SQL_ATTR_CURSOR_SCROLLABLE,
+    cursor_sensitivity = c.SQL_ATTR_CURSOR_SENSITIVITY,
+    cursor_type = c.SQL_ATTR_CURSOR_TYPE,
+    enable_auto_ipd = c.SQL_ATTR_ENABLE_AUTO_IPD,
+    fetch_bookmark_ptr = c.SQL_ATTR_FETCH_BOOKMARK_PTR,
+    imp_param_desc = c.SQL_ATTR_IMP_PARAM_DESC,
+    imp_row_desc = c.SQL_ATTR_IMP_ROW_DESC,
+    keyset_size = c.SQL_ATTR_KEYSET_SIZE,
+    max_length = c.SQL_ATTR_MAX_LENGTH,
+    max_rows = c.SQL_ATTR_MAX_ROWS,
+    metadata_id = c.SQL_ATTR_METADATA_ID,
+    noscan = c.SQL_ATTR_NOSCAN,
+    param_bind_offset_ptr = c.SQL_ATTR_PARAM_BIND_OFFSET_PTR,
+    param_bind_type = c.SQL_ATTR_PARAM_BIND_TYPE,
+    param_operation_ptr = c.SQL_ATTR_PARAM_OPERATION_PTR,
+    param_status_ptr = c.SQL_ATTR_PARAM_STATUS_PTR,
+    params_processed_ptr = c.SQL_ATTR_PARAMS_PROCESSED_PTR,
+    paramset_size = c.SQL_ATTR_PARAMSET_SIZE,
+    query_timeout = c.SQL_ATTR_QUERY_TIMEOUT,
+    retrieve_data = c.SQL_ATTR_RETRIEVE_DATA,
+    row_array_size = c.SQL_ATTR_ROW_ARRAY_SIZE,
+    row_bind_offset_ptr = c.SQL_ATTR_ROW_BIND_OFFSET_PTR,
+    row_bind_type = c.SQL_ATTR_ROW_BIND_TYPE,
+    row_number = c.SQL_ATTR_ROW_NUMBER,
+    row_operation_ptr = c.SQL_ATTR_ROW_OPERATION_PTR,
+    row_status_ptr = c.SQL_ATTR_ROW_STATUS_PTR,
+    rows_fetched_ptr = c.SQL_ATTR_ROWS_FETCHED_PTR,
+    simulate_cursor = c.SQL_ATTR_SIMULATE_CURSOR,
+    use_bookmarks = c.SQL_ATTR_USE_BOOKMARKS,
+};
+
+pub const StmtAttrValue = extern union {
+    /// 0 if binding by column, sizeof struct if binding by row
+    row_bind_type: u64,
+    row_status_ptr: ?[*]RowStatus,
+    row_array_size: u64,
+    rows_fetched_ptr: *u64,
+};
+
 pub const StmtAttrHandle = enum(u16) {
     app_param_desc = c.SQL_ATTR_APP_PARAM_DESC,
     app_row_desc = c.SQL_ATTR_APP_ROW_DESC,
@@ -634,7 +691,6 @@ pub const ColAttributeValue = union(ColAttribute) {
 
 pub const DescFieldI16 = enum(u15) {
     alloc_type = c.SQL_DESC_ALLOC_TYPE, // ARD: R APD: R IRD: R IPD: R
-    count = c.SQL_DESC_COUNT, // ARD: R/W APD: R/W IRD: R IPD: R/W
     concise_type = c.SQL_DESC_CONCISE_TYPE, // ARD: R/W APD: R/W IRD: R IPD: R/W
     datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE, // ARD: R/W APD: R/W IRD: R IPD: R/W
     fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE, // ARD: Unused APD: Unused IRD: R IPD: R
@@ -679,6 +735,7 @@ pub const DescField = enum(u15) {
     array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
     bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
     rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+    count = c.SQL_DESC_COUNT,
 };
 
 pub const DescFieldValue = extern union {
@@ -691,19 +748,10 @@ pub const DescFieldValue = extern union {
     octet_length_ptr: ?[*]i64,
     display_size: i64,
     octet_length: i64,
-    array_status_ptr: ?[*]ArrayStatus,
+    array_status_ptr: ?[*]RowStatus,
     bind_offset_ptr: ?[*]i64,
     rows_processed_ptr: ?[*]u64,
-
-    pub const ArrayStatus = enum(u16) {
-        success = c.SQL_ROW_SUCCESS,
-        success_with_info = c.SQL_ROW_SUCCESS_WITH_INFO,
-        err = c.SQL_ROW_ERROR,
-        updated = c.SQL_ROW_UPDATED,
-        deleted = c.SQL_ROW_DELETED,
-        added = c.SQL_ROW_ADDED,
-        norow = c.SQL_ROW_NOROW,
-    };
+    count: i16,
 };
 
 // TODO

@@ -23,7 +23,19 @@ pub fn init(con: Connection) !Self {
     return .{ .handler = handler };
 }
 
+pub fn free(self: *const Self, option: enum(u16) { close = sql.c.SQL_CLOSE, drop = sql.c.SQL_DROP, unbind = sql.c.SQL_UNBIND, reset_params = sql.c.SQL_RESET_PARAMS }) !void {
+    try retconv1(sql.c.SQLFreeStmt(self.handle(), @intFromEnum(option)));
+}
+
+pub fn closeCursor(self: *const Self) !void {
+    try retconv1(sql.c.SQLCloseCursor(self.handle()));
+}
+
 pub fn deinit(self: Self) void {
+    // self.free(.close) catch unreachable;
+    self.free(.reset_params) catch unreachable;
+    self.free(.unbind) catch unreachable;
+    self.closeCursor() catch unreachable;
     self.handler.deinit();
 }
 
@@ -276,6 +288,44 @@ pub fn describeCol(
     }
 }
 
+pub fn getDataARD(self: Self, col_number: u16, data: []u8, ind: *i64) !void {
+    return switch (sql.c.SQLGetData(
+        self.handle(),
+        col_number,
+        sql.c.SQL_ARD_TYPE,
+        @ptrCast(data.ptr),
+        @intCast(data.len),
+        ind,
+    )) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.GetDataSuccessWithInfo,
+        sql.c.SQL_NO_DATA => error.GetDataNoData,
+        sql.c.SQL_STILL_EXECUTING => error.GetDataStillExecuting,
+        sql.c.SQL_ERROR => error.GetDataError,
+        sql.c.SQL_INVALID_HANDLE => error.GetDataInvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn getData(self: Self, col_number: u16, c_type: types.OdbcFormat, data: []u8, ind: *i64) !void {
+    return switch (sql.c.SQLGetData(
+        self.handle(),
+        col_number,
+        @intFromEnum(c_type),
+        @ptrCast(data.ptr),
+        @intCast(data.len),
+        ind,
+    )) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.GetDataSuccessWithInfo,
+        sql.c.SQL_NO_DATA => error.GetDataNoData,
+        sql.c.SQL_STILL_EXECUTING => error.GetDataStillExecuting,
+        sql.c.SQL_ERROR => error.GetDataError,
+        sql.c.SQL_INVALID_HANDLE => error.GetDataInvalidHandle,
+        else => unreachable,
+    };
+}
+
 pub fn bindCol(
     self: Self,
     col_number: c_ushort,
@@ -360,8 +410,15 @@ pub fn execDirect(self: Self, stmt_str: []const u8) !void {
     try retconv1(sql.c.SQLExecDirectW(self.handle(), conv.ptr, @intCast(conv.len)));
 }
 
-pub fn setStmtAttr(self: Self) !void {
-    _ = self;
+pub fn setStmtAttr(self: Self, comptime attr: attrs.StmtAttr, value: @FieldType(attrs.StmtAttrValue, @tagName(attr))) !void {
+    const as_union = @unionInit(attrs.StmtAttrValue, @tagName(attr), value);
+    const as_usize: usize = @bitCast(as_union);
+    try retconv1(sql.c.SQLSetStmtAttr(
+        self.handle(),
+        @intFromEnum(attr),
+        @ptrFromInt(as_usize),
+        0,
+    ));
 }
 
 pub fn setStmtAttrHandle(self: Self, ptr_kind: attrs.StmtAttrHandle, ptr: *anyopaque) !void {

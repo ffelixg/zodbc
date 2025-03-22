@@ -12,6 +12,7 @@ const InfoType = info.InfoType;
 const InfoTypeValue = info.InfoTypeValue;
 const Attribute = attrs.ConnectionAttribute;
 const AttributeValue = attrs.ConnectionAttributeValue;
+const retconv1 = odbc.return_codes.retconv1;
 
 const Self = @This();
 
@@ -118,8 +119,8 @@ pub fn connectWithString(self: *const Self, dsn: []const u8) !void {
     };
 }
 
-pub fn disconnect(self: *Self) void {
-    _ = self;
+pub fn disconnect(self: *const Self) !void {
+    try retconv1(sql.c.SQLDisconnect(self.handle()));
 }
 
 pub const DriverConnectError = error{

@@ -169,6 +169,8 @@ pub const OdbcFormat = enum(i16) {
     type_timestamp = c.SQL_C_TYPE_TIMESTAMP,
     numeric = c.SQL_C_NUMERIC,
     guid = c.SQL_C_GUID,
+    ss_time2 = msodbc.SQL_C_SS_TIME2,
+    ss_timestampoffset = msodbc.SQL_C_SS_TIMESTAMPOFFSET,
 
     pub fn Type(fmt: OdbcFormat) type {
         return switch (fmt) {
@@ -191,6 +193,8 @@ pub const OdbcFormat = enum(i16) {
             .type_timestamp => c.SQL_TIMESTAMP_STRUCT,
             .numeric => c.SQL_NUMERIC_STRUCT,
             .guid => c.SQLGUID,
+            .ss_time2 => msodbc.SQL_SS_TIME2_STRUCT,
+            .ss_timestampoffset => msodbc.SQL_SS_TIMESTAMPOFFSET_STRUCT,
         };
     }
 };
