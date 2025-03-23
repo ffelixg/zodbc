@@ -288,23 +288,43 @@ pub fn describeCol(
     }
 }
 
-pub fn getDataARD(self: Self, col_number: u16, data: []u8, ind: *i64) !void {
-    return switch (sql.c.SQLGetData(
-        self.handle(),
-        col_number,
-        sql.c.SQL_ARD_TYPE,
-        @ptrCast(data.ptr),
-        @intCast(data.len),
-        ind,
-    )) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.GetDataSuccessWithInfo,
-        sql.c.SQL_NO_DATA => error.GetDataNoData,
-        sql.c.SQL_STILL_EXECUTING => error.GetDataStillExecuting,
-        sql.c.SQL_ERROR => error.GetDataError,
-        sql.c.SQL_INVALID_HANDLE => error.GetDataInvalidHandle,
-        else => unreachable,
+/// Call getData until all data is read.
+pub fn getDataVar(self: Self, col_number: u16, c_type: types.OdbcFormat, data_ptr: *[]u8, ind: *i64, allocator: std.mem.Allocator) !void {
+    const i_col: usize = col_number - 1;
+    var start: usize = 0;
+    var end: usize = 0;
+    start = 0;
+
+    const size_null_terminator: usize = switch (c_type) {
+        .wchar => 2,
+        .char => 1,
+        .binary => 0,
+        else => @panic("getDataVar only supports char, wchar and binary"),
     };
+
+    while (true) {
+        if (self.getData(@intCast(i_col + 1), c_type, data_ptr.*[start..], ind)) {
+            std.debug.assert(0 <= ind.* and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
+            break;
+        } else |e| switch (e) {
+            error.GetDataSuccessWithInfo => {},
+            error.GetDataNoData => {
+                std.debug.assert(ind.* >= 0 or ind.* == sql.c.SQL_NULL_DATA);
+                break;
+            },
+            else => return e,
+        }
+        // SuccessWithInfo from here on
+        if (ind.* < 0) {
+            std.debug.assert(ind.* == sql.c.SQL_NO_TOTAL);
+            end = data_ptr.*.len * 2;
+        } else {
+            end = start + @as(usize, @intCast(ind.*));
+            std.debug.assert(end > data_ptr.*.len);
+        }
+        start = data_ptr.*.len - size_null_terminator;
+        data_ptr.* = try allocator.realloc(data_ptr.*, end + size_null_terminator);
+    }
 }
 
 pub fn getData(self: Self, col_number: u16, c_type: types.OdbcFormat, data: []u8, ind: *i64) !void {

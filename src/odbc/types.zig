@@ -172,6 +172,8 @@ pub const OdbcFormat = enum(i16) {
     ss_time2 = msodbc.SQL_C_SS_TIME2,
     ss_timestampoffset = msodbc.SQL_C_SS_TIMESTAMPOFFSET,
 
+    ard_type = c.SQL_ARD_TYPE,
+
     pub fn Type(fmt: OdbcFormat) type {
         return switch (fmt) {
             .char => c.SQLCHAR,
@@ -195,6 +197,7 @@ pub const OdbcFormat = enum(i16) {
             .guid => c.SQLGUID,
             .ss_time2 => msodbc.SQL_SS_TIME2_STRUCT,
             .ss_timestampoffset => msodbc.SQL_SS_TIMESTAMPOFFSET_STRUCT,
+            .ard_type => unreachable,
         };
     }
 };
