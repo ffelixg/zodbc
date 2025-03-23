@@ -1,5 +1,4 @@
 const std = @import("std");
-const testing = std.testing;
 
 const Handle = @import("Handle.zig");
 const Statement = @import("Statement.zig");
@@ -8,172 +7,513 @@ const odbc = @import("odbc");
 const attrs = odbc.attributes;
 const types = odbc.types;
 const sql = odbc.sql;
-const sqlret = odbc.return_codes.sqlret;
-const retconv1 = odbc.return_codes.retconv1;
+const c = odbc.sql.c;
 
-const Self = @This();
-
-handler: Handle,
-descriptor_kind: attrs.StmtAttrHandle,
-
-pub fn init(stmt: Statement, descriptor_kind: attrs.StmtAttrHandle) !Self {
-    // const handler = try Handle.init(.DESC, stmt.handle());
-    const handler: Handle = .{ .handle = try stmt.getStmtAttrHandle(descriptor_kind), .handle_type = .DESC };
-    return .{ .handler = handler, .descriptor_kind = descriptor_kind };
-}
-
-pub fn deinit(self: Self) void {
-    self.handler.deinit();
-}
-
-pub fn handle(self: Self) ?*anyopaque {
-    return self.handler.handle;
-}
-
-pub fn getLastError(self: Self) sql.LastError {
-    return self.handler.getLastError();
-}
-
-fn _intToPtr(value: anytype) *anyopaque {
-    @setRuntimeSafety(false);
-    const as_usize: usize = @intCast(value);
-    return @ptrFromInt(as_usize);
-}
-
-fn _PtrToInt(T: type, ptr: ?*anyopaque) T {
-    @setRuntimeSafety(false);
-    const as_usize: usize = @intFromPtr(ptr);
-    return @intCast(as_usize);
-}
-
-pub fn setI16Field(self: Self, col_number: i16, field: attrs.DescFieldI16, value: i16) !void {
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(field),
-        _intToPtr(value),
-        sql.c.SQL_IS_SMALLINT,
-    ));
-}
-
-pub fn setU64Field(self: Self, col_number: i16, attr: attrs.DescFieldU64, value: u64) !void {
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        _intToPtr(value),
-        sql.c.SQL_IS_UINTEGER,
-    ));
-}
-
-pub fn setI64Field(self: Self, col_number: i16, attr: attrs.DescFieldI64, value: i64) !void {
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        _intToPtr(value),
-        sql.c.SQL_IS_INTEGER,
-    ));
-}
-
-pub fn getU64Field(self: Self, col_number: i16, attr: attrs.DescFieldU64) !u64 {
-    var value_ptr: ?*anyopaque = null;
-    try retconv1(sql.c.SQLGetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        @ptrCast(&value_ptr),
-        sql.c.SQL_IS_UINTEGER,
-        null,
-    ));
-    return _PtrToInt(u64, value_ptr);
-}
-
-pub fn getDataPtr(self: Self, col_number: i16) !*anyopaque {
-    var value_ptr: ?*anyopaque = null;
-    try retconv1(sql.c.SQLGetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attrs.DescFieldMisc.data_ptr),
-        @ptrCast(&value_ptr),
-        sql.c.SQL_IS_POINTER,
-        null,
-    ));
-    return value_ptr orelse unreachable;
-}
-
-pub fn setDataPtr(self: Self, col_number: i16, data_ptr: *anyopaque) !void {
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attrs.DescFieldMisc.data_ptr),
-        data_ptr,
-        sql.c.SQL_IS_POINTER,
-    ));
-}
-
-pub fn getIndicatorPtr(self: Self, col_number: i16) ![*]i64 {
-    var indicator_ptr: ?[*]i64 = null;
-    try retconv1(sql.c.SQLGetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attrs.DescFieldMisc.indicator_ptr),
-        @ptrCast(&indicator_ptr),
-        sql.c.SQL_IS_POINTER,
-        null,
-    ));
-    return indicator_ptr orelse unreachable;
-}
-
-pub fn setIndicatorPtr(self: Self, col_number: i16, indicator_ptr: [*]i64) !void {
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attrs.DescFieldMisc.indicator_ptr),
-        @ptrCast(indicator_ptr),
-        sql.c.SQL_IS_POINTER,
-    ));
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attrs.DescFieldMisc.octet_length_ptr),
-        @ptrCast(indicator_ptr),
-        sql.c.SQL_IS_POINTER,
-    ));
-}
-
-pub fn setField(self: Self, col_number: i16, comptime field: attrs.DescField, value: @FieldType(attrs.DescFieldValue, @tagName(field))) !void {
-    const as_union = @unionInit(attrs.DescFieldValue, @tagName(field), value);
-    const as_usize: usize = @bitCast(as_union);
-    try retconv1(sql.c.SQLSetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(field),
-        @ptrFromInt(as_usize),
-        0,
-    ));
-}
-
-pub fn getField(self: Self, col_number: i16, comptime attr: attrs.DescField) !@FieldType(attrs.DescFieldValue, @tagName(attr)) {
-    var value_ptr: ?*anyopaque = null;
-    try retconv1(sql.c.SQLGetDescField(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        @ptrCast(&value_ptr),
-        0,
-        null,
-    ));
-    const T = @FieldType(attrs.DescFieldValue, @tagName(attr));
-    return switch (@typeInfo(T)) {
-        .bool => switch (@intFromPtr(value_ptr)) {
-            sql.c.SQL_TRUE => true,
-            sql.c.SQL_FALSE => false,
-            else => unreachable,
+fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
+    return extern union {
+        alloc_type: attrs.AllocType,
+        array_size: u64,
+        array_status_ptr: ?[*]attrs.RowStatus,
+        bind_offset_ptr: ?*i64,
+        bind_type: i32,
+        count: i16,
+        rows_processed_ptr: ?*u64,
+        auto_unique_value: bool,
+        base_column_name: ?[*:0]u8,
+        base_table_name: ?[*:0]u8,
+        case_sensitive: bool,
+        catalog_name: ?[*:0]u8,
+        concise_type: switch (descriptor_kind) {
+            .app_param_desc, .app_row_desc => types.OdbcFormat,
+            .imp_param_desc, .imp_row_desc => types.SQLDataType,
         },
-        .int => _PtrToInt(T, value_ptr),
-        .@"enum" => @enumFromInt(value_ptr),
-        .optional, .pointer => @alignCast(@ptrCast(value_ptr)),
+        data_ptr: ?[*]u8,
+        datetime_interval_code: attrs.DateTimeIntervalCode,
+        datetime_interval_precision: i32,
+        display_size: i64,
+        fixed_prec_scale: bool,
+        indicator_ptr: ?[*]i64,
+        label: ?[*:0]u8,
+        length: u64,
+        literal_prefix: ?[*:0]u8,
+        literal_suffix: ?[*:0]u8,
+        local_type_name: ?[*:0]u8,
+        name: ?[*:0]u8,
+        nullable: attrs.Nullable,
+        num_prec_radix: attrs.NumPrecRadix,
+        octet_length: i64,
+        octet_length_ptr: ?[*]i64,
+        parameter_type: attrs.ParameterType,
+        precision: i16,
+        rowver: bool,
+        scale: i16,
+        schema_name: ?[*:0]u8,
+        searchable: attrs.Searchable,
+        table_name: ?[*:0]u8,
+        type: switch (descriptor_kind) {
+            .app_param_desc, .app_row_desc => types.OdbcFormat,
+            .imp_param_desc, .imp_row_desc => types.SQLDataType,
+        },
+        type_name: ?[*:0]u8,
+        unnamed: attrs.Unnamed,
+        unsigned: bool,
+        updatable: attrs.Updatable,
+    };
+}
+
+fn FieldType(comptime attr: anytype, comptime descriptor_kind: attrs.StmtAttrHandle) type {
+    const T = @FieldType(FieldValueUnion(descriptor_kind), @tagName(attr));
+    switch (@typeInfo(T)) {
+        .pointer => |info| {
+            if (info.child == u8) {
+                @compileError("Strings are not implemented yet");
+            }
+        },
+        else => {},
+    }
+    return T;
+}
+
+fn getFieldGeneric(
+    handle: ?*anyopaque,
+    col_number: i16,
+    comptime attr: anytype,
+    comptime descriptor_kind: attrs.StmtAttrHandle,
+) !FieldType(attr, descriptor_kind) {
+    var value_ptr: ?*anyopaque = null;
+    switch (sql.c.SQLGetDescField(
+        handle,
+        col_number,
+        @intFromEnum(attr),
+        @ptrCast(&value_ptr),
+        0,
+        null,
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => return error.GetDescFieldSuccessWithInfo,
+        c.SQL_ERROR => return error.GetDescFieldError,
+        c.SQL_NO_DATA => return error.GetDescFieldNoData,
+        c.SQL_INVALID_HANDLE => return error.GetDescFieldInvalidHandle,
+        else => unreachable,
+    }
+    const as_usize = @intFromPtr(value_ptr);
+    const as_union: FieldValueUnion(descriptor_kind) = @bitCast(as_usize);
+    return @field(as_union, @tagName(attr));
+}
+
+fn setFieldGeneric(
+    handle: ?*anyopaque,
+    col_number: i16,
+    comptime attr: anytype,
+    comptime descriptor_kind: attrs.StmtAttrHandle,
+    value: FieldType(attr, descriptor_kind),
+) !void {
+    const as_union = @unionInit(
+        FieldValueUnion(descriptor_kind),
+        @tagName(attr),
+        value,
+    );
+    const as_usize: usize = @bitCast(as_union);
+    const as_ptr: ?*anyopaque = @ptrFromInt(as_usize);
+    return switch (sql.c.SQLSetDescField(
+        handle,
+        col_number,
+        @intFromEnum(attr),
+        as_ptr,
+        0,
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.SetDescFieldSuccessWithInfo,
+        c.SQL_ERROR => error.SetDescFieldError,
+        c.SQL_INVALID_HANDLE => error.SetDescFieldInvalidHandle,
         else => unreachable,
     };
 }
+
+const ReadFieldsAppRowDesc = enum(u15) {
+    array_size = c.SQL_DESC_ARRAY_SIZE,
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
+    bind_type = c.SQL_DESC_BIND_TYPE,
+    count = c.SQL_DESC_COUNT,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    data_ptr = c.SQL_DESC_DATA_PTR,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
+    length = c.SQL_DESC_LENGTH,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+    // read only fields
+    alloc_type = c.SQL_DESC_ALLOC_TYPE,
+};
+
+const ReadFieldsAppParamDesc = enum(u15) {
+    array_size = c.ARRAY_SIZE,
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
+    bind_type = c.SQL_DESC_BIND_TYPE,
+    count = c.SQL_DESC_COUNT,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    data_ptr = c.SQL_DESC_DATA_PTR,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
+    length = c.SQL_DESC_LENGTH,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+    // read only fields
+    alloc_type = c.SQL_DESC_ALLOC_TYPE,
+};
+
+const ReadFieldsImpRowDesc = enum(u15) {
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+    // read only fields
+    alloc_type = c.SQL_DESC_ALLOC_TYPE,
+    count = c.SQL_DESC_COUNT,
+    auto_unique_value = c.SQL_DESC_AUTO_UNIQUE_VALUE,
+    base_column_name = c.SQL_DESC_BASE_COLUMN_NAME,
+    base_table_name = c.SQL_DESC_BASE_TABLE_NAME,
+    case_sensitive = c.SQL_DESC_CASE_SENSITIVE,
+    catalog_name = c.SQL_DESC_CATALOG_NAME,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    display_size = c.SQL_DESC_DISPLAY_SIZE,
+    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE,
+    label = c.SQL_DESC_LABEL,
+    length = c.SQL_DESC_LENGTH,
+    literal_prefix = c.SQL_DESC_LITERAL_PREFIX,
+    literal_suffix = c.SQL_DESC_LITERAL_SUFFIX,
+    local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
+    name = c.SQL_DESC_NAME,
+    nullable = c.SQL_DESC_NULLABLE,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    precision = c.SQL_DESC_PRECISION,
+    rowver = c.SQL_DESC_ROWVER,
+    scale = c.SQL_DESC_SCALE,
+    schema_name = c.SQL_DESC_SCHEMA_NAME,
+    searchable = c.SQL_DESC_SEARCHABLE,
+    table_name = c.SQL_DESC_TABLE_NAME,
+    type = c.SQL_DESC_TYPE,
+    type_name = c.SQL_DESC_TYPE_NAME,
+    unnamed = c.SQL_DESC_UNNAMED,
+    unsigned = c.SQL_DESC_UNSIGNED,
+    updatable = c.SQL_DESC_UPDATABLE,
+};
+
+const ReadFieldsImpParamDesc = enum(u15) {
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    count = c.SQL_DESC_COUNT,
+    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    length = c.SQL_DESC_LENGTH,
+    name = c.SQL_DESC_NAME,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    parameter_type = c.SQL_DESC_PARAMETER_TYPE,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+    unnamed = c.SQL_DESC_UNNAMED,
+    // read only fields
+    alloc_type = c.SQL_DESC_ALLOC_TYPE,
+    case_sensitive = c.SQL_DESC_CASE_SENSITIVE,
+    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE,
+    local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
+    nullable = c.SQL_DESC_NULLABLE,
+    rowver = c.SQL_DESC_ROWVER,
+    type_name = c.SQL_DESC_TYPE_NAME,
+    unsigned = c.SQL_DESC_UNSIGNED,
+};
+
+const WriteFieldsAppRowDesc = enum(u15) {
+    array_size = c.SQL_DESC_ARRAY_SIZE,
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
+    bind_type = c.SQL_DESC_BIND_TYPE,
+    count = c.SQL_DESC_COUNT,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    data_ptr = c.SQL_DESC_DATA_PTR,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
+    length = c.SQL_DESC_LENGTH,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+};
+
+const WriteFieldsAppParamDesc = enum(u15) {
+    array_size = c.ARRAY_SIZE,
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
+    bind_type = c.SQL_DESC_BIND_TYPE,
+    count = c.SQL_DESC_COUNT,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    data_ptr = c.SQL_DESC_DATA_PTR,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
+    length = c.SQL_DESC_LENGTH,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+};
+
+const WriteFieldsImpRowDesc = enum(u15) {
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+};
+
+const WriteFieldsImpParamDesc = enum(u15) {
+    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
+    count = c.SQL_DESC_COUNT,
+    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
+    concise_type = c.SQL_DESC_CONCISE_TYPE,
+    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE,
+    datetime_interval_precision = c.SQL_DESC_DATETIME_INTERVAL_PRECISION,
+    length = c.SQL_DESC_LENGTH,
+    name = c.SQL_DESC_NAME,
+    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
+    octet_length = c.SQL_DESC_OCTET_LENGTH,
+    parameter_type = c.SQL_DESC_PARAMETER_TYPE,
+    precision = c.SQL_DESC_PRECISION,
+    scale = c.SQL_DESC_SCALE,
+    type = c.SQL_DESC_TYPE,
+    unnamed = c.SQL_DESC_UNNAMED,
+};
+
+pub const AppRowDesc = struct {
+    handler: Handle,
+
+    const Self = @This();
+
+    pub fn init(stmt: Statement) !Self {
+        const handler: Handle = .{
+            .handle = try stmt.getStmtAttrHandle(.app_row_desc),
+            .handle_type = .DESC,
+        };
+        return .{ .handler = handler };
+    }
+
+    pub fn deinit(self: Self) void {
+        self.handler.deinit();
+    }
+
+    pub fn handle(self: Self) ?*anyopaque {
+        return self.handler.handle;
+    }
+
+    pub fn getLastError(self: Self) sql.LastError {
+        return self.handler.getLastError();
+    }
+
+    pub fn setField(
+        self: Self,
+        col_number: i16,
+        comptime field: WriteFieldsAppRowDesc,
+        value: FieldType(field, .app_row_desc),
+    ) !void {
+        try setFieldGeneric(
+            self.handle(),
+            col_number,
+            field,
+            .app_row_desc,
+            value,
+        );
+    }
+
+    pub fn getField(
+        self: Self,
+        col_number: i16,
+        comptime attr: ReadFieldsAppRowDesc,
+    ) !FieldType(attr, .app_row_desc) {
+        return try getFieldGeneric(
+            self.handle(),
+            col_number,
+            attr,
+            .app_row_desc,
+        );
+    }
+};
+
+pub const ImpRowDesc = struct {
+    handler: Handle,
+
+    const Self = @This();
+
+    pub fn init(stmt: Statement) !Self {
+        const handler: Handle = .{
+            .handle = try stmt.getStmtAttrHandle(.imp_row_desc),
+            .handle_type = .DESC,
+        };
+        return .{ .handler = handler };
+    }
+
+    pub fn deinit(self: Self) void {
+        self.handler.deinit();
+    }
+
+    pub fn handle(self: Self) ?*anyopaque {
+        return self.handler.handle;
+    }
+
+    pub fn getLastError(self: Self) sql.LastError {
+        return self.handler.getLastError();
+    }
+
+    pub fn setField(
+        self: Self,
+        col_number: i16,
+        comptime field: WriteFieldsImpRowDesc,
+        value: FieldType(field, .imp_row_desc),
+    ) !void {
+        try setFieldGeneric(
+            self.handle(),
+            col_number,
+            field,
+            .imp_row_desc,
+            value,
+        );
+    }
+
+    pub fn getField(
+        self: Self,
+        col_number: i16,
+        comptime attr: ReadFieldsImpRowDesc,
+    ) !FieldType(attr, .imp_row_desc) {
+        return try getFieldGeneric(
+            self.handle(),
+            col_number,
+            attr,
+            .imp_row_desc,
+        );
+    }
+};
+
+pub const AppParamDesc = struct {
+    handler: Handle,
+
+    const Self = @This();
+
+    pub fn init(stmt: Statement) !Self {
+        const handler: Handle = .{
+            .handle = try stmt.getStmtAttrHandle(.app_param_desc),
+            .handle_type = .DESC,
+        };
+        return .{ .handler = handler };
+    }
+
+    pub fn deinit(self: Self) void {
+        self.handler.deinit();
+    }
+
+    pub fn handle(self: Self) ?*anyopaque {
+        return self.handler.handle;
+    }
+
+    pub fn getLastError(self: Self) sql.LastError {
+        return self.handler.getLastError();
+    }
+
+    pub fn setField(
+        self: Self,
+        col_number: i16,
+        comptime field: WriteFieldsAppParamDesc,
+        value: FieldType(field, .app_param_desc),
+    ) !void {
+        try setFieldGeneric(
+            self.handle(),
+            col_number,
+            field,
+            .app_param_desc,
+            value,
+        );
+    }
+
+    pub fn getField(
+        self: Self,
+        col_number: i16,
+        comptime attr: ReadFieldsAppParamDesc,
+    ) !FieldType(attr, .app_param_desc) {
+        return try getFieldGeneric(
+            self.handle(),
+            col_number,
+            attr,
+            .app_param_desc,
+        );
+    }
+};
+
+pub const ImpParamDesc = struct {
+    handler: Handle,
+
+    const Self = @This();
+
+    pub fn init(stmt: Statement) !Self {
+        const handler: Handle = .{
+            .handle = try stmt.getStmtAttrHandle(.imp_param_desc),
+            .handle_type = .DESC,
+        };
+        return .{ .handler = handler };
+    }
+
+    pub fn deinit(self: Self) void {
+        self.handler.deinit();
+    }
+
+    pub fn handle(self: Self) ?*anyopaque {
+        return self.handler.handle;
+    }
+
+    pub fn getLastError(self: Self) sql.LastError {
+        return self.handler.getLastError();
+    }
+
+    pub fn setField(
+        self: Self,
+        col_number: i16,
+        comptime field: WriteFieldsImpParamDesc,
+        value: FieldType(field, .imp_param_desc),
+    ) !void {
+        try setFieldGeneric(
+            self.handle(),
+            col_number,
+            field,
+            .imp_param_desc,
+            value,
+        );
+    }
+
+    pub fn getField(
+        self: Self,
+        col_number: i16,
+        comptime attr: ReadFieldsImpParamDesc,
+    ) !FieldType(attr, .imp_param_desc) {
+        return try getFieldGeneric(
+            self.handle(),
+            col_number,
+            attr,
+            .imp_param_desc,
+        );
+    }
+};

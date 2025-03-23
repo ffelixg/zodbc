@@ -20,6 +20,66 @@ pub const RowStatus = enum(u16) {
     norow = c.SQL_ROW_NOROW,
 };
 
+pub const DateTimeIntervalCode = enum(i16) {
+    no_datetime_or_interval = 0,
+    year = c.SQL_CODE_YEAR,
+    month = c.SQL_CODE_MONTH,
+    day = c.SQL_CODE_DAY,
+    hour = c.SQL_CODE_HOUR,
+    minute = c.SQL_CODE_MINUTE,
+    second = c.SQL_CODE_SECOND,
+    year_to_month = c.SQL_CODE_YEAR_TO_MONTH,
+    day_to_hour = c.SQL_CODE_DAY_TO_HOUR,
+    day_to_minute = c.SQL_CODE_DAY_TO_MINUTE,
+    day_to_second = c.SQL_CODE_DAY_TO_SECOND,
+    hour_to_minute = c.SQL_CODE_HOUR_TO_MINUTE,
+    hour_to_second = c.SQL_CODE_HOUR_TO_SECOND,
+    minute_to_second = c.SQL_CODE_MINUTE_TO_SECOND,
+};
+
+pub const Nullable = enum(i16) {
+    nullable = c.SQL_NULLABLE,
+    no_nulls = c.SQL_NO_NULLS,
+    nullable_unknown = c.SQL_NULLABLE_UNKNOWN,
+};
+
+pub const NumPrecRadix = enum(i16) {
+    approximate_numeric = 2,
+    exact_numeric = 10,
+    non_numeric = 0,
+};
+
+pub const Searchable = enum(i16) {
+    unsearchable = c.SQL_PRED_NONE,
+    searchable_like_only = c.SQL_PRED_CHAR,
+    searchable_no_like = c.SQL_PRED_BASIC,
+    searchable = c.SQL_PRED_SEARCHABLE,
+};
+
+pub const Unnamed = enum(i16) {
+    named = c.SQL_NAMED,
+    unnamed = c.SQL_UNNAMED,
+};
+
+pub const Updatable = enum(i16) {
+    read_only = c.SQL_ATTR_READONLY,
+    write = c.SQL_ATTR_WRITE,
+    unknown = c.SQL_ATTR_READWRITE_UNKNOWN,
+};
+
+pub const ParameterType = enum(i16) {
+    input = c.SQL_PARAM_INPUT,
+    output = c.SQL_PARAM_OUTPUT,
+    output_stream = c.SQL_PARAM_OUTPUT_STREAM,
+    input_output = c.SQL_PARAM_INPUT_OUTPUT,
+    input_output_stream = c.SQL_PARAM_INPUT_OUTPUT_STREAM,
+};
+
+pub const AllocType = enum(i16) {
+    alloc_auto = c.SQL_DESC_ALLOC_AUTO,
+    alloc_user = c.SQL_DESC_ALLOC_USER,
+};
+
 //
 // Environment
 //
@@ -562,32 +622,6 @@ pub const ColAttributeEnumValue = union(ColAttributeEnum) {
     unnamed: Unnamed,
     updatable: Updatable,
 
-    const Nullable = enum(i64) {
-        nullable = c.SQL_NULLABLE,
-        no_nulls = c.SQL_NO_NULLS,
-        nullable_unknown = c.SQL_NULLABLE_UNKNOWN,
-    };
-    const NumPrecRadix = enum(i64) {
-        approximate_numeric = 2,
-        exact_numeric = 10,
-        non_numeric = 0,
-    };
-    const Searchable = enum(i64) {
-        unsearchable = c.SQL_PRED_NONE,
-        searchable_like_only = c.SQL_PRED_CHAR,
-        searchable_no_like = c.SQL_PRED_BASIC,
-        searchable = c.SQL_PRED_SEARCHABLE,
-    };
-    const Unnamed = enum(i64) {
-        named = c.SQL_NAMED,
-        unnamed = c.SQL_UNNAMED,
-    };
-    const Updatable = enum(i64) {
-        read_only = c.SQL_ATTR_READONLY,
-        write = c.SQL_ATTR_WRITE,
-        unknown = c.SQL_ATTR_READWRITE_UNKNOWN,
-    };
-
     pub fn init(
         attr: ColAttributeEnum,
         num_val: i64,
@@ -643,32 +677,6 @@ pub const ColAttributeValue = union(ColAttribute) {
     unnamed: Unnamed,
     updatable: Updatable,
 
-    const Nullable = enum(i64) {
-        nullable = c.SQL_NULLABLE,
-        no_nulls = c.SQL_NO_NULLS,
-        nullable_unknown = c.SQL_NULLABLE_UNKNOWN,
-    };
-    const NumPrecRadix = enum(i64) {
-        approximate_numeric = 2,
-        exact_numeric = 10,
-        non_numeric = 0,
-    };
-    const Searchable = enum(i64) {
-        unsearchable = c.SQL_PRED_NONE,
-        searchable_like_only = c.SQL_PRED_CHAR,
-        searchable_no_like = c.SQL_PRED_BASIC,
-        searchable = c.SQL_PRED_SEARCHABLE,
-    };
-    const Unnamed = enum(i64) {
-        named = c.SQL_NAMED,
-        unnamed = c.SQL_UNNAMED,
-    };
-    const Updatable = enum(i64) {
-        read_only = c.SQL_ATTR_READONLY,
-        write = c.SQL_ATTR_WRITE,
-        unknown = c.SQL_ATTR_READWRITE_UNKNOWN,
-    };
-
     pub fn init(
         attr: ColAttributeEnum,
         num_val: i64,
@@ -684,90 +692,3 @@ pub const ColAttributeValue = union(ColAttribute) {
         };
     }
 };
-
-//
-// Descriptors
-//
-
-pub const DescFieldI16 = enum(u15) {
-    alloc_type = c.SQL_DESC_ALLOC_TYPE, // ARD: R APD: R IRD: R IPD: R
-    concise_type = c.SQL_DESC_CONCISE_TYPE, // ARD: R/W APD: R/W IRD: R IPD: R/W
-    datetime_interval_code = c.SQL_DESC_DATETIME_INTERVAL_CODE, // ARD: R/W APD: R/W IRD: R IPD: R/W
-    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE, // ARD: Unused APD: Unused IRD: R IPD: R
-    nullable = c.SQL_DESC_NULLABLE, // ARD: Unused APD: Unused IRD: R IPD: R
-    parameter_type = c.SQL_DESC_PARAMETER_TYPE, // ARD: Unused APD: Unused IRD: Unused IPD: R/W
-    precision = c.SQL_DESC_PRECISION, // ARD: R/W APD: R/W IRD: R IPD: R/W
-    rowver = c.SQL_DESC_ROWVER, // ARD: Unused
-    scale = c.SQL_DESC_SCALE, // ARD: R/W APD: R/W IRD: R IPD: R/W
-    searchable = c.SQL_DESC_SEARCHABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
-    type = c.SQL_DESC_TYPE, // ARD: R/W APD: R/W IRD: R IPD: R/W
-    unnamed = c.SQL_DESC_UNNAMED, // ARD: Unused APD: Unused IRD: R IPD: R/W
-    unsigned = c.SQL_DESC_UNSIGNED, // ARD: Unused APD: Unused IRD: R IPD: R
-    updatable = c.SQL_DESC_UPDATABLE, // ARD: Unused APD: Unused IRD: R IPD: Unused
-};
-
-pub const DescFieldU64 = enum(u15) {
-    array_size = c.SQL_DESC_ARRAY_SIZE, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
-    length = c.SQL_DESC_LENGTH, // ARD: R/W APD: R/W IRD: R IPD: R/W
-};
-
-pub const DescFieldMisc = enum(u15) {
-    indicator_ptr = c.SQL_DESC_INDICATOR_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
-    data_ptr = c.SQL_DESC_DATA_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
-    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR, // ARD: R/W APD: R/W IRD: Unused IPD: Unused
-};
-
-pub const DescFieldI64 = enum(u15) {
-    display_size = c.SQL_DESC_DISPLAY_SIZE, // ARD: Unused APD: Unused IRD: R IPD: Unused
-    octet_length = c.SQL_DESC_OCTET_LENGTH, // ARD: R/W APD: R/W IRD: R IPD: R/W
-};
-
-pub const DescField = enum(u15) {
-    precision = c.SQL_DESC_PRECISION,
-    scale = c.SQL_DESC_SCALE,
-    array_size = c.SQL_DESC_ARRAY_SIZE,
-    length = c.SQL_DESC_LENGTH,
-    indicator_ptr = c.SQL_DESC_INDICATOR_PTR,
-    data_ptr = c.SQL_DESC_DATA_PTR,
-    octet_length_ptr = c.SQL_DESC_OCTET_LENGTH_PTR,
-    display_size = c.SQL_DESC_DISPLAY_SIZE,
-    octet_length = c.SQL_DESC_OCTET_LENGTH,
-    array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
-    bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
-    rows_processed_ptr = c.SQL_DESC_ROWS_PROCESSED_PTR,
-    count = c.SQL_DESC_COUNT,
-};
-
-pub const DescFieldValue = extern union {
-    precision: i16,
-    scale: i16,
-    array_size: u64,
-    length: u64,
-    indicator_ptr: ?[*]i64,
-    data_ptr: ?[*]u8,
-    octet_length_ptr: ?[*]i64,
-    display_size: i64,
-    octet_length: i64,
-    array_status_ptr: ?[*]RowStatus,
-    bind_offset_ptr: ?[*]i64,
-    rows_processed_ptr: ?[*]u64,
-    count: i16,
-};
-
-// TODO
-// SQL_DESC_BIND_TYPE                              SQLINTEGER      ARD: R/W APD: R/W IRD: Unused IPD: Unused
-// SQL_DESC_AUTO_UNIQUE_VALUE                      SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_BASE_COLUMN_NAME                       SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_BASE_TABLE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_CASE_SENSITIVE                         SQLINTEGER      ARD: Unused APD: Unused IRD: R IPD: R
-// SQL_DESC_CATALOG_NAME                           SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_DATETIME_INTERVAL_PRECISION            SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
-// SQL_DESC_LABEL                                  SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_LITERAL_PREFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_LITERAL_SUFFIX                         SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_LOCAL_TYPE_NAME                        SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R
-// SQL_DESC_NAME                                   SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R/W
-// SQL_DESC_NUM_PREC_RADIX                         SQLINTEGER      ARD: R/W APD: R/W IRD: R IPD: R/W
-// SQL_DESC_SCHEMA_NAME                            SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_TABLE_NAME                             SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: Unused
-// SQL_DESC_TYPE_NAME                              SQLCHAR *       ARD: Unused APD: Unused IRD: R IPD: R
