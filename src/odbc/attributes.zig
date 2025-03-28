@@ -291,20 +291,20 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
         _ = str_len;
         _ = allocator;
         return switch (attr) {
-            .connection_dead => .{ .ConnectionDead = @enumFromInt(readInt(i64, odbc_buf)) },
-            .driver_threading => .{ .DriverThreading = readInt(u16, odbc_buf) },
-            .access_mode => .{ .AccessMode = @enumFromInt(readInt(i32, odbc_buf)) },
-            .autocommit => .{ .Autocommit = @enumFromInt(readInt(u64, odbc_buf)) },
-            .connection_timeout => .{ .ConnectionTimeout = readInt(u32, odbc_buf) },
-            // .current_catalog => .{ .CurrentCatalog = readInt(u32, odbc_buf) },
-            .disconnect_behavior => .{ .TxnIsolation = @enumFromInt(readInt(i64, odbc_buf)) },
-            .enlist_in_dtc => .{ .EnlistInDtc = @enumFromInt(readInt(u32, odbc_buf)) },
-            // .enlist_in_xa => .{ .EnlistInXa = @enumFromInt(readInt(u32, odbc_buf)) },
-            .login_timeout => .{ .LoginTimeout = readInt(u32, odbc_buf) },
-            .odbc_cursors => .{ .OdbcCursors = @enumFromInt(readInt(u32, odbc_buf)) },
-            .packet_size => .{ .PacketSize = readInt(u32, odbc_buf) },
-            // .quiet_mode => .{ .QuietMode = readInt(u32, odbc_buf) },
-            .trace => .{ .Trace = @enumFromInt(readInt(u32, odbc_buf)) },
+            .connection_dead => .{ .connection_dead = @enumFromInt(readInt(i64, odbc_buf)) },
+            .driver_threading => .{ .driver_threading = readInt(u16, odbc_buf) },
+            .access_mode => .{ .access_mode = @enumFromInt(readInt(i32, odbc_buf)) },
+            .autocommit => .{ .autocommit = @enumFromInt(readInt(u64, odbc_buf)) },
+            .connection_timeout => .{ .connection_timeout = readInt(u32, odbc_buf) },
+            // .current_catalog => .{ .current_catalog = readInt(u32, odbc_buf) },
+            .disconnect_behavior => .{ .txn_isolation = @enumFromInt(readInt(i64, odbc_buf)) },
+            .enlist_in_dtc => .{ .enlist_in_dtc = @enumFromInt(readInt(u32, odbc_buf)) },
+            // .enlist_in_xa => .{ .enlist_in_xa = @enumFromInt(readInt(u32, odbc_buf)) },
+            .login_timeout => .{ .login_timeout = readInt(u32, odbc_buf) },
+            .odbc_cursors => .{ .odbc_cursors = @enumFromInt(readInt(u32, odbc_buf)) },
+            .packet_size => .{ .packet_size = readInt(u32, odbc_buf) },
+            // .quiet_mode => .{ .quiet_mode = readInt(u32, odbc_buf) },
+            .trace => .{ .trace = @enumFromInt(readInt(u32, odbc_buf)) },
             // .trace_file => {
             //     const str = try allocator.alloc(u8, @intCast(str_len));
             //     @memcpy(str, odbc_buf[0..@intCast(str_len)]);
@@ -320,13 +320,13 @@ pub const ConnectionAttributeValue = union(ConnectionAttribute) {
             //     @memcpy(str, odbc_buf[0..@intCast(str_len)]);
             //     return .{ .translate_option = str[0..] };
             // },
-            .txn_isolation => .{ .TxnIsolation = @enumFromInt(readInt(u32, odbc_buf)) },
-            .ansi_app => .{ .AnsiApp = @enumFromInt(readInt(u32, odbc_buf)) },
-            .async_enable => .{ .AsyncEnable = @enumFromInt(readInt(u32, odbc_buf)) },
-            .auto_ipd => .{ .AutoIpd = @enumFromInt(readInt(u32, odbc_buf)) },
-            .reset_connection => .{ .ResetConnection = @enumFromInt(readInt(u32, odbc_buf)) },
-            .async_dbc_functions_enable => .{ .AsyncDbcFunctionsEnable = @enumFromInt(readInt(u32, odbc_buf)) },
-            .fet_buf_size => .{ .FetBufSize = readInt(u32, odbc_buf) },
+            .txn_isolation => .{ .txn_isolation = @enumFromInt(readInt(u32, odbc_buf)) },
+            .ansi_app => .{ .ansi_app = @enumFromInt(readInt(u32, odbc_buf)) },
+            .async_enable => .{ .async_enable = @enumFromInt(readInt(u32, odbc_buf)) },
+            .auto_ipd => .{ .auto_ipd = @enumFromInt(readInt(u32, odbc_buf)) },
+            .reset_connection => .{ .reset_connection = @enumFromInt(readInt(u32, odbc_buf)) },
+            .async_dbc_functions_enable => .{ .async_dbc_functions_enable = @enumFromInt(readInt(u32, odbc_buf)) },
+            .fet_buf_size => .{ .fet_buf_size = readInt(u32, odbc_buf) },
         };
     }
 

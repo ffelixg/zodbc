@@ -175,17 +175,17 @@ pub const InfoType = enum(c_int) {
     user_name = c.SQL_USER_NAME,
     xopen_cli_year = c.SQL_XOPEN_CLI_YEAR,
     // IBM Db2 specific info types
-    // AsciiGccsid = c.SQL_ASCII_GCCSID,
-    // AsciiMccsid = c.SQL_ASCII_MCCSID,
-    // AsciiSccsid = c.SQL_ASCII_SCCSID,
-    // ConvertRowid = c.SQL_CONVERT_ROWID,
-    // CloseBehavior = c.SQL_CLOSE_BEHAVIOR,
-    // EbcdicGccsid = c.SQL_EBCDIC_GCCSID,
-    // EbcdicMccsid = c.SQL_EBCDIC_MCCSID,
-    // EbcdicSccsid = c.SQL_EBCDIC_SCCSID,
-    // UnicodeGccsid = c.SQL_UNICODE_GCCSID,
-    // UnicodeMccsid = c.SQL_UNICODE_MCCSID,
-    // UnicodeSccsid = c.SQL_UNICODE_SCCSID,
+    // ascii_gccsid = c.SQL_ASCII_GCCSID,
+    // ascii_mccsid = c.SQL_ASCII_MCCSID,
+    // ascii_sccsid = c.SQL_ASCII_SCCSID,
+    // convert_rowid = c.SQL_CONVERT_ROWID,
+    // close_behavior = c.SQL_CLOSE_BEHAVIOR,
+    // ebcdic_gccsid = c.SQL_EBCDIC_GCCSID,
+    // ebcdic_mccsid = c.SQL_EBCDIC_MCCSID,
+    // ebcdic_sccsid = c.SQL_EBCDIC_SCCSID,
+    // unicode_gccsid = c.SQL_UNICODE_GCCSID,
+    // unicode_mccsid = c.SQL_UNICODE_MCCSID,
+    // unicode_sccsid = c.SQL_UNICODE_SCCSID,
 };
 
 pub const InfoTypeValue = union(InfoType) {
@@ -688,8 +688,8 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const ConcatNullBehavior = enum(c_int) {
-        Null = c.SQL_CB_NULL,
-        NonNull = c.SQL_CB_NON_NULL,
+        null = c.SQL_CB_NULL,
+        non_null = c.SQL_CB_NON_NULL,
     };
 
     pub const ConvertBinaryMask = struct {
@@ -777,9 +777,9 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const CorrelationName = enum(c_int) {
-        Any = c.SQL_CN_ANY,
-        None = c.SQL_CN_NONE,
-        Different = c.SQL_CN_DIFFERENT,
+        any = c.SQL_CN_ANY,
+        none = c.SQL_CN_NONE,
+        different = c.SQL_CN_DIFFERENT,
     };
 
     pub const CreateAssertionMask = struct {
@@ -811,15 +811,15 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const CursorBehavior = enum(c_int) {
-        Delete = c.SQL_CB_DELETE,
-        Close = c.SQL_CB_CLOSE,
-        Preserve = c.SQL_CB_PRESERVE,
+        delete = c.SQL_CB_DELETE,
+        close = c.SQL_CB_CLOSE,
+        preserve = c.SQL_CB_PRESERVE,
     };
 
     pub const CursorSensitivity = enum(c_int) {
-        Insensitive = c.SQL_INSENSITIVE,
-        Unspecified = c.SQL_UNSPECIFIED,
-        Sensitive = c.SQL_SENSITIVE,
+        insensitive = c.SQL_INSENSITIVE,
+        unspecified = c.SQL_UNSPECIFIED,
+        sensitive = c.SQL_SENSITIVE,
     };
 
     pub const DdlIndexMask = struct {
@@ -887,17 +887,17 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const GroupBy = enum(c_int) {
-        NoRelation = c.SQL_GB_NO_RELATION,
-        NotSupported = c.SQL_GB_NOT_SUPPORTED,
-        GroupByEqualsSelect = c.SQL_GB_GROUP_BY_EQUALS_SELECT,
-        GroupByContainsSelect = c.SQL_GB_GROUP_BY_CONTAINS_SELECT,
+        no_relation = c.SQL_GB_NO_RELATION,
+        not_supported = c.SQL_GB_NOT_SUPPORTED,
+        group_by_equals_select = c.SQL_GB_GROUP_BY_EQUALS_SELECT,
+        group_by_contains_select = c.SQL_GB_GROUP_BY_CONTAINS_SELECT,
     };
 
     pub const IdentifierCase = enum(c_int) {
-        Upper = c.SQL_IC_UPPER,
-        Lower = c.SQL_IC_LOWER,
-        Sensitive = c.SQL_IC_SENSITIVE,
-        Mixed = c.SQL_IC_MIXED,
+        upper = c.SQL_IC_UPPER,
+        lower = c.SQL_IC_LOWER,
+        sensitive = c.SQL_IC_SENSITIVE,
+        mixed = c.SQL_IC_MIXED,
     };
 
     pub const InfoSchemaViewsMask = struct {
@@ -921,13 +921,13 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const NonNullableColumns = enum(c_int) {
-        NonNull = c.SQL_NNC_NON_NULL,
-        Null = c.SQL_NNC_NULL,
+        non_null = c.SQL_NNC_NON_NULL,
+        null = c.SQL_NNC_NULL,
     };
 
     pub const NullCollation = enum(c_int) {
-        High = c.SQL_NC_HIGH,
-        Low = c.SQL_NC_LOW,
+        high = c.SQL_NC_HIGH,
+        low = c.SQL_NC_LOW,
     };
 
     pub const NumericFunctionsMask = struct {
@@ -935,20 +935,20 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const OdbcApiConformance = enum(c_int) {
-        None = c.SQL_OAC_NONE,
-        Level1 = c.SQL_OAC_LEVEL1,
-        Level2 = c.SQL_OAC_LEVEL2,
+        none = c.SQL_OAC_NONE,
+        level1 = c.SQL_OAC_LEVEL1,
+        level2 = c.SQL_OAC_LEVEL2,
     };
 
     pub const OdbcSagCliConformance = enum(c_int) {
-        NotCompliant = c.SQL_OSCC_NOT_COMPLIANT,
-        Compliant = c.SQL_OSCC_COMPLIANT,
+        not_compliant = c.SQL_OSCC_NOT_COMPLIANT,
+        compliant = c.SQL_OSCC_COMPLIANT,
     };
 
     pub const OdbcSqlConformance = enum(c_int) {
-        Minimum = c.SQL_OSC_MINIMUM,
-        Core = c.SQL_OSC_CORE,
-        Extended = c.SQL_OSC_EXTENDED,
+        minimum = c.SQL_OSC_MINIMUM,
+        core = c.SQL_OSC_CORE,
+        extended = c.SQL_OSC_EXTENDED,
     };
 
     pub const OjCapabilitiesMask = struct {
@@ -956,14 +956,14 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const ParamArrayRowCounts = enum(c_int) {
-        Batch = c.SQL_PARC_BATCH,
-        NoBatch = c.SQL_PARC_NO_BATCH,
+        batch = c.SQL_PARC_BATCH,
+        no_batch = c.SQL_PARC_NO_BATCH,
     };
 
     pub const ParamArraySelects = enum(c_int) {
-        Batch = c.SQL_PAS_BATCH,
-        NoBatch = c.SQL_PAS_NO_BATCH,
-        NoSelect = c.SQL_PAS_NO_SELECT,
+        batch = c.SQL_PAS_BATCH,
+        no_batch = c.SQL_PAS_NO_BATCH,
+        no_select = c.SQL_PAS_NO_SELECT,
     };
 
     pub const PosOperationsMask = struct {
@@ -975,10 +975,10 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const QuotedIdentifierCase = enum(c_int) {
-        Upper = c.SQL_IC_UPPER,
-        Lower = c.SQL_IC_LOWER,
-        Sensitive = c.SQL_IC_SENSITIVE,
-        Mixed = c.SQL_IC_MIXED,
+        upper = c.SQL_IC_UPPER,
+        lower = c.SQL_IC_LOWER,
+        sensitive = c.SQL_IC_SENSITIVE,
+        mixed = c.SQL_IC_MIXED,
     };
 
     pub const SchemaUsageMask = struct {
@@ -1038,11 +1038,11 @@ pub const InfoTypeValue = union(InfoType) {
     };
 
     pub const TxnCapable = enum(c_int) {
-        Upper = c.SQL_TC_NONE,
-        Dml = c.SQL_TC_DML,
-        DdlCommit = c.SQL_TC_DDL_COMMIT,
-        DdlIgnore = c.SQL_TC_DDL_IGNORE,
-        All = c.SQL_TC_ALL,
+        upper = c.SQL_TC_NONE,
+        dml = c.SQL_TC_DML,
+        ddl_commit = c.SQL_TC_DDL_COMMIT,
+        ddl_ignore = c.SQL_TC_DDL_IGNORE,
+        all = c.SQL_TC_ALL,
     };
 
     pub const TxnIsolationOptionMask = struct {

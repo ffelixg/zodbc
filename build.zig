@@ -3,6 +3,11 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const skipruntimetest = b.option(
+        bool,
+        "skipruntimetest",
+        "Don't execute tests, only verify correct compilation",
+    ) orelse false;
 
     // ----------------------------
     // Dependencies
@@ -109,7 +114,7 @@ pub fn build(b: *std.Build) void {
     // ----------------------------
     const test_runner: std.Build.Step.Compile.TestRunner = .{
         .mode = .simple,
-        .path = b.path("test_runner.zig"),
+        .path = b.path(if (skipruntimetest) "test_runner_noexecute.zig" else "test_runner.zig"),
     };
 
     const lib_core_unit_tests = b.addTest(.{
@@ -134,6 +139,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     lib_pool_unit_tests.root_module.addImport("odbc", odbc_mod);
+    lib_pool_unit_tests.root_module.addImport("core", core_mod);
     const run_lib_pool_unit_tests = b.addRunArtifact(lib_pool_unit_tests);
 
     const lib_unit_tests = b.addTest(.{

@@ -21,35 +21,35 @@ test "getConnectAttr/3 can retrieve the current item values for disconnected con
     var odbc_buf: [256]u8 = undefined;
 
     @memset(odbc_buf[0..], 0);
-    const access_mode_value = try con.getConnectAttr(allocator, .AccessMode, odbc_buf[0..]);
+    const access_mode_value = try con.getConnectAttr(allocator, .access_mode, odbc_buf[0..]);
     defer access_mode_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.AccessMode.ReadWrite,
-        access_mode_value.AccessMode,
+        AttributeValue.AccessMode.read_write,
+        access_mode_value.access_mode,
     );
 
     @memset(odbc_buf[0..], 0);
-    const autocommit_value = try con.getConnectAttr(allocator, .Autocommit, odbc_buf[0..]);
+    const autocommit_value = try con.getConnectAttr(allocator, .autocommit, odbc_buf[0..]);
     defer autocommit_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.Autocommit.On,
-        autocommit_value.Autocommit,
+        AttributeValue.Autocommit.on,
+        autocommit_value.autocommit,
     );
 
     @memset(odbc_buf[0..], 0);
-    const odbc_cursors_value = try con.getConnectAttr(allocator, .OdbcCursors, odbc_buf[0..]);
+    const odbc_cursors_value = try con.getConnectAttr(allocator, .odbc_cursors, odbc_buf[0..]);
     defer odbc_cursors_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.OdbcCursors.UseDriver,
-        odbc_cursors_value.OdbcCursors,
+        AttributeValue.OdbcCursors.use_driver,
+        odbc_cursors_value.odbc_cursors,
     );
 
     @memset(odbc_buf[0..], 0);
-    const trace_value = try con.getConnectAttr(allocator, .Trace, odbc_buf[0..]);
+    const trace_value = try con.getConnectAttr(allocator, .trace, odbc_buf[0..]);
     defer trace_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.Trace.Off,
-        trace_value.Trace,
+        AttributeValue.Trace.off,
+        trace_value.trace,
     );
 }
 
@@ -67,94 +67,94 @@ test "getConnectAttr/3 can retrieve connected items" {
     var odbc_buf: [256]u8 = undefined;
 
     @memset(odbc_buf[0..], 0);
-    const connection_dead_value = try con.getConnectAttr(allocator, .ConnectionDead, odbc_buf[0..]);
+    const connection_dead_value = try con.getConnectAttr(allocator, .connection_dead, odbc_buf[0..]);
     defer connection_dead_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.ConnectionDead.False,
-        connection_dead_value.ConnectionDead,
+        AttributeValue.ConnectionDead.false,
+        connection_dead_value.connection_dead,
     );
 
     // @memset(odbc_buf[0..], 0);
-    // const driver_threading_value = try con.getConnectAttr(allocator, .DriverThreading, odbc_buf[0..]);
+    // const driver_threading_value = try con.getConnectAttr(allocator, .driver_threading, odbc_buf[0..]);
     // defer driver_threading_value.deinit(allocator);
-    // try expectEqual(1, driver_threading_value.DriverThreading);
+    // try expectEqual(1, driver_threading_value.driver_threading);
 
     @memset(odbc_buf[0..], 0);
-    const connection_timeout_value = try con.getConnectAttr(allocator, .ConnectionTimeout, odbc_buf[0..]);
+    const connection_timeout_value = try con.getConnectAttr(allocator, .connection_timeout, odbc_buf[0..]);
     defer connection_timeout_value.deinit(allocator);
-    try expectEqual(0, connection_timeout_value.ConnectionTimeout);
+    try expectEqual(0, connection_timeout_value.connection_timeout);
 
     // TODO:
     // - does this option require driver level connection pooling to be enabled?
     // @memset(odbc_buf[0..], 0);
-    // const disconnect_behavior_value = try con.getConnectAttr(allocator, .DisconnectBehavior, odbc_buf[0..]);
+    // const disconnect_behavior_value = try con.getConnectAttr(allocator, .disconnect_behavior, odbc_buf[0..]);
     // defer disconnect_behavior_value.deinit(allocator);
     // try expectEqual(
-    //     AttributeValue.DisconnectBehavior.ReturnToPool,
-    //     disconnect_behavior_value.DisconnectBehavior,
+    //     AttributeValue.DisconnectBehavior.return_to_pool,
+    //     disconnect_behavior_value.disconnect_behavior,
     // );
 
     // TODO:
     // - figure out why this gets option out of range erro
     // @memset(odbc_buf[0..], 0);
-    // const enlist_in_dtc_value = try con.getConnectAttr(allocator, .EnlistInDtc, odbc_buf[0..]);
+    // const enlist_in_dtc_value = try con.getConnectAttr(allocator, .enlist_in_dtc, odbc_buf[0..]);
     // defer enlist_in_dtc_value.deinit(allocator);
     // try expectEqual(
-    //     AttributeValue.EnlistInDtc.EnlistExpensive,
-    //     enlist_in_dtc_value.EnlistInDtc,
+    //     AttributeValue.EnlistInDtc.enlist_expensive,
+    //     enlist_in_dtc_value.enlist_in_dtc,
     // );
 
     @memset(odbc_buf[0..], 0);
-    const login_timeout_value = try con.getConnectAttr(allocator, .LoginTimeout, odbc_buf[0..]);
+    const login_timeout_value = try con.getConnectAttr(allocator, .login_timeout, odbc_buf[0..]);
     defer login_timeout_value.deinit(allocator);
-    try expectEqual(0, login_timeout_value.LoginTimeout);
+    try expectEqual(0, login_timeout_value.login_timeout);
 
     @memset(odbc_buf[0..], 0);
-    const txn_isolation_value = try con.getConnectAttr(allocator, .TxnIsolation, odbc_buf[0..]);
+    const txn_isolation_value = try con.getConnectAttr(allocator, .txn_isolation, odbc_buf[0..]);
     defer txn_isolation_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.TxnIsolation.ReadCommitted,
-        txn_isolation_value.TxnIsolation,
+        AttributeValue.TxnIsolation.read_committed,
+        txn_isolation_value.txn_isolation,
     );
 
     @memset(odbc_buf[0..], 0);
-    const ansi_app_value = try con.getConnectAttr(allocator, .AnsiApp, odbc_buf[0..]);
+    const ansi_app_value = try con.getConnectAttr(allocator, .ansi_app, odbc_buf[0..]);
     defer ansi_app_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.AnsiApp.True,
-        ansi_app_value.AnsiApp,
+        AttributeValue.AnsiApp.true,
+        ansi_app_value.ansi_app,
     );
 
     @memset(odbc_buf[0..], 0);
-    const async_enable_value = try con.getConnectAttr(allocator, .AsyncEnable, odbc_buf[0..]);
+    const async_enable_value = try con.getConnectAttr(allocator, .async_enable, odbc_buf[0..]);
     defer async_enable_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.AsyncEnable.Off,
-        async_enable_value.AsyncEnable,
+        AttributeValue.AsyncEnable.off,
+        async_enable_value.async_enable,
     );
 
     @memset(odbc_buf[0..], 0);
-    const auto_ipd_value = try con.getConnectAttr(allocator, .AutoIpd, odbc_buf[0..]);
+    const auto_ipd_value = try con.getConnectAttr(allocator, .auto_ipd, odbc_buf[0..]);
     defer auto_ipd_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.AutoIpd.True,
-        auto_ipd_value.AutoIpd,
+        AttributeValue.AutoIpd.true,
+        auto_ipd_value.auto_ipd,
     );
 
     // @memset(odbc_buf[0..], 0);
-    // const reset_connection_value = try con.getConnectAttr(allocator, .ResetConnection, odbc_buf[0..]);
+    // const reset_connection_value = try con.getConnectAttr(allocator, .reset_connection, odbc_buf[0..]);
     // defer reset_connection_value.deinit(allocator);
     // try expectEqual(
-    //     AttributeValue.ResetConnection.Yes,
-    //     reset_connection_value.ResetConnection,
+    //     AttributeValue.ResetConnection.yes,
+    //     reset_connection_value.reset_connection,
     // );
 
     @memset(odbc_buf[0..], 0);
-    const async_dbc_functions_enable_value = try con.getConnectAttr(allocator, .AsyncDbcFunctionsEnable, odbc_buf[0..]);
+    const async_dbc_functions_enable_value = try con.getConnectAttr(allocator, .async_dbc_functions_enable, odbc_buf[0..]);
     defer async_dbc_functions_enable_value.deinit(allocator);
     try expectEqual(
-        AttributeValue.AsyncDbcFunctionsEnable.Off,
-        async_dbc_functions_enable_value.AsyncDbcFunctionsEnable,
+        AttributeValue.AsyncDbcFunctionsEnable.off,
+        async_dbc_functions_enable_value.async_dbc_functions_enable,
     );
 }
 
@@ -172,9 +172,9 @@ test "getConnectAttr/3 can retrieve Db2 specific items" {
     var odbc_buf: [256]u8 = undefined;
 
     @memset(odbc_buf[0..], 0);
-    const fet_buf_size_value = try con.getConnectAttr(allocator, .FetBufSize, odbc_buf[0..]);
+    const fet_buf_size_value = try con.getConnectAttr(allocator, .fet_buf_size, odbc_buf[0..]);
     defer fet_buf_size_value.deinit(allocator);
-    try expectEqual(65536, fet_buf_size_value.FetBufSize);
+    try expectEqual(65536, fet_buf_size_value.fet_buf_size);
 }
 
 // IBM Db2 doesn't support SQL_ATTR_PACKET_SIZE
@@ -196,6 +196,6 @@ test "getConnectAttr/3 returns a not implemented error for unsupported items" {
     @memset(odbc_buf[0..], 0);
     try expectError(
         err.SetConnectAttrError.Error,
-        con.getConnectAttr(allocator, .PacketSize, odbc_buf[0..]),
+        con.getConnectAttr(allocator, .packet_size, odbc_buf[0..]),
     );
 }
