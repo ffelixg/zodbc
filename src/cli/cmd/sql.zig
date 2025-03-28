@@ -53,7 +53,7 @@ var verbose = zig_cli.Option{
 pub var cmd = zig_cli.Command{
     .name = "sql",
     .options = &.{
-        &command,
+        command,
         &dsn,
         &output,
         &include_headers,

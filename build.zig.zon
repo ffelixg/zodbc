@@ -1,11 +1,12 @@
 .{
     .name = .zodbc,
+    .fingerprint = 0xdaabb21d47adea34,
     .version = "0.0.0",
     .minimum_zig_version = "0.14.0",
     .dependencies = .{
-        .@"zig-cli" = .{
-            .url = "https://github.com/sam701/zig-cli/archive/7dcc9fa4dbfe77673c97a0be6b814f208373f54c.tar.gz",
-            .hash = "cli-0.9.0-2eKe_8D2AACsJeXkYpgqPjp7vhpWpGP5d5rdQ4Y1WBnP",
+        .cli = .{
+            .url = "git+https://github.com/sam701/zig-cli#fda36e04c4b2170d5a2e6c9139da9b090009c05e",
+            .hash = "cli-0.9.0-2eKe_xb3AAAYv3UiejaYsP0AdxdoIFmcxQ_4TYhBqJXX",
         },
     },
     .paths = .{

@@ -7,7 +7,7 @@ pub fn build(b: *std.Build) void {
     // ----------------------------
     // Dependencies
     // ----------------------------
-    const zig_cli_dep = b.dependency("zig-cli", .{
+    const zig_cli_dep = b.dependency("cli", .{
         .target = target,
         .optimize = optimize,
     });
@@ -89,8 +89,8 @@ pub fn build(b: *std.Build) void {
         .name = "zodbc",
         .root_module = exe_mod,
     });
-    // exe.root_module.addImport("zig-cli", zig_cli_dep.module("zig-cli"));
-    // exe.linkLibrary(lib);
+    exe.root_module.addImport("zig-cli", zig_cli_dep.module("zig-cli"));
+    exe.linkLibrary(lib);
     b.installArtifact(exe);
 
     // ----------------------------
