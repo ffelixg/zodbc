@@ -301,15 +301,20 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.OdbcFormat, data_pt
         .binary => 0,
         else => @panic("getDataVar only supports char, wchar and binary"),
     };
+    std.debug.assert(data_ptr.*.len >= size_null_terminator);
 
     while (true) {
         if (self.getData(@intCast(i_col + 1), c_type, data_ptr.*[start..], ind)) {
-            std.debug.assert(0 <= ind.* and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
+            if (ind.* >= 0)
+                ind.* += @intCast(start);
+            std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
             break;
         } else |e| switch (e) {
             error.GetDataSuccessWithInfo => {},
             error.GetDataNoData => {
-                std.debug.assert(ind.* >= 0 or ind.* == sql.c.SQL_NULL_DATA);
+                if (ind.* >= 0)
+                    ind.* += @intCast(start);
+                std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
                 break;
             },
             else => return e,
@@ -319,11 +324,19 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.OdbcFormat, data_pt
             std.debug.assert(ind.* == sql.c.SQL_NO_TOTAL);
             end = data_ptr.*.len * 2;
         } else {
-            end = start + @as(usize, @intCast(ind.*));
+            end = start + @as(usize, @intCast(ind.*)) + size_null_terminator;
             std.debug.assert(end > data_ptr.*.len);
         }
         start = data_ptr.*.len - size_null_terminator;
-        data_ptr.* = try allocator.realloc(data_ptr.*, end + size_null_terminator);
+        data_ptr.* = switch (c_type) {
+            .wchar => @ptrCast(try allocator.realloc(
+                @as([]u16, @alignCast(@ptrCast(data_ptr.*))),
+                @divExact(end, 2),
+            )),
+            .char => try allocator.realloc(data_ptr.*, end),
+            .binary => try allocator.realloc(data_ptr.*, end),
+            else => @panic("getDataVar only supports char, wchar and binary"),
+        };
     }
 }
 
