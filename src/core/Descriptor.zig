@@ -29,7 +29,7 @@ fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
         case_sensitive: bool,
         catalog_name: ?[*:0]u8,
         concise_type: switch (descriptor_kind) {
-            .app_param_desc, .app_row_desc => types.OdbcFormat,
+            .app_param_desc, .app_row_desc => types.CDataType,
             .imp_param_desc, .imp_row_desc => types.SQLDataType,
         },
         data_ptr: ?[*]u8,
@@ -56,7 +56,7 @@ fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
         searchable: attrs.Searchable,
         table_name: ?[*:0]u8,
         type: switch (descriptor_kind) {
-            .app_param_desc, .app_row_desc => types.OdbcFormat,
+            .app_param_desc, .app_row_desc => types.CDataType,
             .imp_param_desc, .imp_row_desc => types.SQLDataType,
         },
         type_name: ?[*:0]u8,

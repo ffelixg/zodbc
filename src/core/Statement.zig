@@ -285,7 +285,7 @@ pub fn describeCol(
 }
 
 /// Call getData until all data is read.
-pub fn getDataVar(self: Self, col_number: u16, c_type: types.OdbcFormat, data_ptr: *[]u8, ind: *i64, allocator: std.mem.Allocator) !void {
+pub fn getDataVar(self: Self, col_number: u16, c_type: types.CDataType, data_ptr: *[]u8, ind: *i64, allocator: std.mem.Allocator) !void {
     const i_col: usize = col_number - 1;
     var start: usize = 0;
     var end: usize = 0;
@@ -336,7 +336,7 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.OdbcFormat, data_pt
     }
 }
 
-pub fn getData(self: Self, col_number: u16, c_type: types.OdbcFormat, data: []u8, ind: *i64) !void {
+pub fn getData(self: Self, col_number: u16, c_type: types.CDataType, data: []u8, ind: *i64) !void {
     return switch (sql.c.SQLGetData(
         self.handle(),
         col_number,
