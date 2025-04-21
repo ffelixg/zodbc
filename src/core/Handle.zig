@@ -1,3 +1,4 @@
+const std = @import("std");
 const odbc = @import("odbc");
 const rc = odbc.return_codes;
 const types = odbc.types;
@@ -26,7 +27,7 @@ pub fn init(handle_type: types.HandleType, input_handle: ?*anyopaque) !Self {
 }
 
 pub fn deinit(self: Self) void {
-    _ = sql.SQLFreeHandle(self.handle_type, self.handle);
+    std.debug.assert(sql.c.SQLFreeHandle(@intFromEnum(self.handle_type), self.handle) == sql.c.SQL_SUCCESS);
 }
 
 pub fn getLastError(self: Self) sql.LastError {

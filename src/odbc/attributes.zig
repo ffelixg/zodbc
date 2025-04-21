@@ -10,6 +10,7 @@ pub const c = @cImport({
     @cInclude("sqlext.h");
 });
 
+/// IRD array status
 pub const RowStatus = enum(u16) {
     success = c.SQL_ROW_SUCCESS,
     success_with_info = c.SQL_ROW_SUCCESS_WITH_INFO,
@@ -18,6 +19,27 @@ pub const RowStatus = enum(u16) {
     deleted = c.SQL_ROW_DELETED,
     added = c.SQL_ROW_ADDED,
     norow = c.SQL_ROW_NOROW,
+};
+
+/// IPD array status
+pub const ParamStatus = enum(u16) {
+    success = c.SQL_PARAM_SUCCESS,
+    success_with_info = c.SQL_PARAM_SUCCESS_WITH_INFO,
+    err = c.SQL_PARAM_ERROR,
+    unused = c.SQL_PARAM_UNUSED,
+    diag_unavailable = c.SQL_PARAM_DIAG_UNAVAILABLE,
+};
+
+/// ARD array status
+pub const RowOperation = enum(u16) {
+    proceed = c.SQL_ROW_PROCEED,
+    ignore = c.SQL_ROW_IGNORE,
+};
+
+/// APD array status
+pub const ParamOperation = enum(u16) {
+    proceed = c.SQL_PARAM_PROCEED,
+    ignore = c.SQL_PARAM_IGNORE,
 };
 
 pub const DateTimeIntervalCode = enum(i16) {

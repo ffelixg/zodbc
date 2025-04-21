@@ -13,7 +13,12 @@ fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
     return extern union {
         alloc_type: attrs.AllocType,
         array_size: u64,
-        array_status_ptr: ?[*]attrs.RowStatus,
+        array_status_ptr: switch (descriptor_kind) {
+            .imp_row_desc => ?[*]attrs.RowStatus,
+            .app_row_desc => ?[*]attrs.RowOperation,
+            .imp_param_desc => ?[*]attrs.ParamStatus,
+            .app_param_desc => ?[*]attrs.ParamOperation,
+        },
         bind_offset_ptr: ?*i64,
         bind_type: i32,
         count: i16,
@@ -74,6 +79,65 @@ fn FieldType(comptime attr: anytype, comptime descriptor_kind: attrs.StmtAttrHan
     return T;
 }
 
+inline fn fromUsize(T: type, val: usize) T {
+    switch (@typeInfo(T)) {
+        .pointer => return @ptrFromInt(val),
+        .optional => |info| {
+            comptime std.debug.assert(@typeInfo(info.child) == .pointer);
+            return @ptrFromInt(val);
+        },
+        .int => |info| {
+            switch (info.signedness) {
+                .signed => {
+                    const sval: isize = @bitCast(val);
+                    return @intCast(sval);
+                },
+                .unsigned => return @intCast(val),
+            }
+        },
+        .@"enum" => |info| {
+            switch (@typeInfo(info.tag_type).int.signedness) {
+                .signed => {
+                    const sval: isize = @bitCast(val);
+                    return @enumFromInt(sval);
+                },
+                .unsigned => return @enumFromInt(val),
+            }
+        },
+        .bool => return switch (val) {
+            0 => false,
+            1 => true,
+            else => unreachable,
+        },
+        else => @compileError(@typeName(T)),
+    }
+}
+
+inline fn toUsize(val: anytype) usize {
+    switch (@typeInfo(@TypeOf(val))) {
+        .pointer => return @intFromPtr(val),
+        .optional => |info| {
+            comptime std.debug.assert(@typeInfo(info.child) == .pointer);
+            return @intFromPtr(val);
+        },
+        .int => |info| {
+            switch (info.signedness) {
+                .signed => return @bitCast(@as(isize, val)),
+                .unsigned => return @as(usize, val),
+            }
+        },
+        .@"enum" => {
+            const as_int = @intFromEnum(val);
+            switch (@typeInfo(@TypeOf(as_int)).int.signedness) {
+                .signed => return @bitCast(@as(isize, as_int)),
+                .unsigned => return @as(usize, as_int),
+            }
+        },
+        .bool => @intFromBool(val),
+        else => @compileError(@typeName(@TypeOf(val))),
+    }
+}
+
 fn getFieldGeneric(
     handle: ?*anyopaque,
     col_number: i16,
@@ -96,9 +160,7 @@ fn getFieldGeneric(
         c.SQL_INVALID_HANDLE => return error.GetDescFieldInvalidHandle,
         else => unreachable,
     }
-    const as_usize = @intFromPtr(value_ptr);
-    const as_union: FieldValueUnion(descriptor_kind) = @bitCast(as_usize);
-    return @field(as_union, @tagName(attr));
+    return fromUsize(FieldType(attr, descriptor_kind), @intFromPtr(value_ptr));
 }
 
 fn setFieldGeneric(
@@ -108,18 +170,11 @@ fn setFieldGeneric(
     comptime descriptor_kind: attrs.StmtAttrHandle,
     value: FieldType(attr, descriptor_kind),
 ) !void {
-    const as_union = @unionInit(
-        FieldValueUnion(descriptor_kind),
-        @tagName(attr),
-        value,
-    );
-    const as_usize: usize = @bitCast(as_union);
-    const as_ptr: ?*anyopaque = @ptrFromInt(as_usize);
     return switch (sql.c.SQLSetDescField(
         handle,
         col_number,
         @intFromEnum(attr),
-        as_ptr,
+        @ptrFromInt(toUsize(value)),
         0,
     )) {
         c.SQL_SUCCESS => {},
@@ -153,7 +208,7 @@ const ReadFieldsAppRowDesc = enum(u15) {
 };
 
 const ReadFieldsAppParamDesc = enum(u15) {
-    array_size = c.ARRAY_SIZE,
+    array_size = c.SQL_DESC_ARRAY_SIZE,
     array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
     bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
     bind_type = c.SQL_DESC_BIND_TYPE,
@@ -260,7 +315,7 @@ const WriteFieldsAppRowDesc = enum(u15) {
 };
 
 const WriteFieldsAppParamDesc = enum(u15) {
-    array_size = c.ARRAY_SIZE,
+    array_size = c.SQL_DESC_ARRAY_SIZE,
     array_status_ptr = c.SQL_DESC_ARRAY_STATUS_PTR,
     bind_offset_ptr = c.SQL_DESC_BIND_OFFSET_PTR,
     bind_type = c.SQL_DESC_BIND_TYPE,
@@ -307,16 +362,12 @@ pub const AppRowDesc = struct {
 
     const Self = @This();
 
-    pub fn init(stmt: Statement) !Self {
+    pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
             .handle = try stmt.getStmtAttrHandle(.app_row_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
-    }
-
-    pub fn deinit(self: Self) void {
-        self.handler.deinit();
     }
 
     pub fn handle(self: Self) ?*anyopaque {
@@ -361,16 +412,12 @@ pub const ImpRowDesc = struct {
 
     const Self = @This();
 
-    pub fn init(stmt: Statement) !Self {
+    pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
             .handle = try stmt.getStmtAttrHandle(.imp_row_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
-    }
-
-    pub fn deinit(self: Self) void {
-        self.handler.deinit();
     }
 
     pub fn handle(self: Self) ?*anyopaque {
@@ -415,16 +462,12 @@ pub const AppParamDesc = struct {
 
     const Self = @This();
 
-    pub fn init(stmt: Statement) !Self {
+    pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
             .handle = try stmt.getStmtAttrHandle(.app_param_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
-    }
-
-    pub fn deinit(self: Self) void {
-        self.handler.deinit();
     }
 
     pub fn handle(self: Self) ?*anyopaque {
@@ -469,16 +512,12 @@ pub const ImpParamDesc = struct {
 
     const Self = @This();
 
-    pub fn init(stmt: Statement) !Self {
+    pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
             .handle = try stmt.getStmtAttrHandle(.imp_param_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
-    }
-
-    pub fn deinit(self: Self) void {
-        self.handler.deinit();
     }
 
     pub fn handle(self: Self) ?*anyopaque {
