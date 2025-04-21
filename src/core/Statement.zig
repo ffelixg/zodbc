@@ -32,10 +32,6 @@ pub fn closeCursor(self: *const Self) !void {
 }
 
 pub fn deinit(self: Self) void {
-    // self.free(.close) catch unreachable;
-    self.free(.reset_params) catch unreachable;
-    self.free(.unbind) catch unreachable;
-    self.closeCursor() catch unreachable;
     self.handler.deinit();
 }
 
@@ -379,30 +375,6 @@ pub fn bindCol(
     };
 }
 
-pub fn bindCol2(
-    self: Self,
-    col_number: u16,
-    c_type: types.CDataType,
-    buffer: *anyopaque,
-    buffer_length: i64,
-    indicator: [*]i64,
-) !void {
-    return switch (sql.c.SQLBindCol(
-        self.handle(),
-        col_number,
-        @intFromEnum(c_type),
-        buffer,
-        buffer_length,
-        indicator,
-    )) {
-        sqlret.success => {},
-        sqlret.success_with_info => error.Info,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
-}
-
 pub fn bindFileToCol(self: Self) !void {
     _ = self;
 }
@@ -413,6 +385,39 @@ pub fn bindFileToParam(self: Self) !void {
 
 pub fn bindParameter(self: Self) !void {
     _ = self;
+}
+
+pub fn paramData(self: Self, T: type) !?*T {
+    var ptr: ?*anyopaque = null;
+    return switch (sql.c.SQLParamData(
+        self.handle(),
+        @ptrCast(&ptr),
+    )) {
+        sql.c.SQL_SUCCESS => null,
+        sql.c.SQL_NEED_DATA => @alignCast(@ptrCast(ptr orelse unreachable)),
+        sql.c.SQL_SUCCESS_WITH_INFO => error.paramDataSuccessWithInfo,
+        sql.c.SQL_NO_DATA => error.paramDataNoData,
+        sql.c.SQL_STILL_EXECUTING => error.paramDataStillExecuting,
+        sql.c.SQL_ERROR => error.paramDataError,
+        sql.c.SQL_INVALID_HANDLE => error.paramDataInvalidHandle,
+        sql.c.SQL_PARAM_DATA_AVAILABLE => error.paramDataParamDataAvailable,
+        else => unreachable,
+    };
+}
+
+pub fn putData(self: Self, data: ?[]u8) !void {
+    return switch (sql.c.SQLPutData(
+        self.handle(),
+        if (data) |d| @ptrCast(d.ptr) else null,
+        if (data) |d| @intCast(d.len) else sql.c.SQL_NULL_DATA,
+    )) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.putDataSuccessWithInfo,
+        sql.c.SQL_STILL_EXECUTING => error.putDataStillExecuting,
+        sql.c.SQL_ERROR => error.putDataError,
+        sql.c.SQL_INVALID_HANDLE => error.putDataInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn getCursorName(self: Self) void {
@@ -438,9 +443,19 @@ pub fn execute(self: Self) !void {
 }
 
 pub fn execDirect(self: Self, stmt_str: []const u8) !void {
-    const conv = try std.unicode.utf8ToUtf16LeAllocZ(std.heap.c_allocator, stmt_str);
-    defer std.heap.c_allocator.free(conv);
-    try retconv1(sql.c.SQLExecDirectW(self.handle(), conv.ptr, @intCast(conv.len)));
+    const as_wide = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.c_allocator, stmt_str);
+    defer std.heap.c_allocator.free(as_wide);
+    return switch (sql.c.SQLExecDirectW(self.handle(), as_wide.ptr, @intCast(as_wide.len))) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.ExecDirectSuccessWithInfo,
+        sql.c.SQL_NEED_DATA => error.ExecDirectNeedData,
+        sql.c.SQL_STILL_EXECUTING => error.ExecDirectStillExecuting,
+        sql.c.SQL_ERROR => error.ExecDirectError,
+        sql.c.SQL_NO_DATA => error.ExecDirectNoData,
+        sql.c.SQL_INVALID_HANDLE => error.ExecDirectInvalidHandle,
+        sql.c.SQL_PARAM_DATA_AVAILABLE => error.ExecDirectParamDataAvailable,
+        else => unreachable,
+    };
 }
 
 pub fn setStmtAttr(self: Self, comptime attr: attrs.StmtAttr, value: @FieldType(attrs.StmtAttrValue, @tagName(attr))) !void {
@@ -604,7 +619,7 @@ pub const FetchScrollError = error{
 };
 
 test ".init/1 returns an error when called without an established connection" {
-    const env = try Environment.init(.V3);
+    const env = try Environment.init(.v3);
     defer env.deinit();
     const con = try Connection.init(env);
     defer con.deinit();
