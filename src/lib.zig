@@ -8,6 +8,7 @@ pub const Environment = core.Environment;
 pub const Connection = core.Connection;
 pub const Statement = core.Statement;
 pub const Descriptor = core.Descriptor;
+pub const ResultSet = core.ResultSet;
 
 const pool = @import("pool");
 pub const WorkerPool = pool.WorkerPool;

@@ -206,7 +206,7 @@ pub const CDataType = enum(c_short) {
         return .default;
     }
 
-    pub fn Type(fmt: CDataType) type {
+    pub fn MaybeType(fmt: CDataType) ?type {
         return switch (fmt) {
             .char => c.SQLCHAR,
             .wchar => c.SQLWCHAR,
@@ -229,9 +229,59 @@ pub const CDataType = enum(c_short) {
             .guid => c.SQLGUID,
             .ss_time2 => msodbc.SQL_SS_TIME2_STRUCT,
             .ss_timestampoffset => msodbc.SQL_SS_TIMESTAMPOFFSET_STRUCT,
-            .ard_type => @compileError(@tagName(fmt) ++ " is not mapped to any one type"),
-            else => unreachable,
+            else => null,
         };
+    }
+
+    pub fn Type(fmt: CDataType) type {
+        return fmt.MaybeType() orelse noreturn;
+    }
+
+    pub fn asType(comptime fmt: CDataType, data: []u8) if (fmt.MaybeType()) |T| []T else noreturn {
+        if (fmt.MaybeType() != null) {
+            return @ptrCast(@alignCast(data));
+        } else unreachable;
+    }
+
+    pub fn asTypeValue(comptime fmt: CDataType, data: []u8) if (fmt.MaybeType()) |T| T else noreturn {
+        if (fmt.MaybeType()) |T| {
+            return std.mem.bytesToValue(T, data);
+        } else unreachable;
+    }
+
+    pub fn alloc(fmt: CDataType, allocator: std.mem.Allocator, n: usize) ![]u8 {
+        switch (fmt) {
+            inline else => |f| {
+                if (f.MaybeType()) |T| {
+                    return @ptrCast(try allocator.alloc(T, n));
+                } else {
+                    @panic("unsupported type");
+                }
+            },
+        }
+    }
+
+    pub fn free(fmt: CDataType, allocator: std.mem.Allocator, data: []u8) void {
+        switch (fmt) {
+            inline else => |f| {
+                if (f.MaybeType() == null) {
+                    @panic("unsupported type");
+                }
+                allocator.free(f.asType(data));
+            },
+        }
+    }
+
+    pub fn sizeOf(fmt: CDataType) usize {
+        switch (fmt) {
+            inline else => |f| {
+                if (f.MaybeType()) |T| {
+                    return @sizeOf(T);
+                } else {
+                    @panic("unsupported type");
+                }
+            },
+        }
     }
 };
 
