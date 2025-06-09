@@ -4,3 +4,4 @@ pub const info = @import("info.zig");
 pub const return_codes = @import("return_codes.zig");
 pub const sql = @import("sql.zig");
 pub const mem = @import("mem.zig");
+pub const c = @import("c");

@@ -4,11 +4,7 @@ const mem = @import("mem.zig");
 const types = @import("types.zig");
 const readInt = mem.readInt;
 
-pub const c = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-});
+const c = @import("c");
 
 /// IRD array status
 pub const RowStatus = enum(u16) {

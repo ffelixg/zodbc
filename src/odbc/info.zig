@@ -6,11 +6,7 @@ const mem = @import("mem.zig");
 const readInt = mem.readInt;
 const strToBool = mem.strToBool;
 
-pub const c = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-});
+const c = @import("c");
 
 pub const InfoType = enum(c_int) {
     // ODBC spec

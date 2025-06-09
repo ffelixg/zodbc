@@ -1,11 +1,5 @@
 const std = @import("std");
-
-pub const c = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-});
-
+const c = @import("c");
 const types = @import("types.zig");
 const mem = @import("mem.zig");
 const info = @import("info.zig");

@@ -12,6 +12,7 @@ const rc = odbc.return_codes;
 const sqlret = odbc.return_codes.sqlret;
 const types = odbc.types;
 const sql = odbc.sql;
+const c = odbc.c;
 const retconv1 = odbc.return_codes.retconv1;
 
 const Self = @This();
@@ -23,12 +24,12 @@ pub fn init(con: Connection) !Self {
     return .{ .handler = handler };
 }
 
-pub fn free(self: *const Self, option: enum(u16) { close = sql.c.SQL_CLOSE, drop = sql.c.SQL_DROP, unbind = sql.c.SQL_UNBIND, reset_params = sql.c.SQL_RESET_PARAMS }) !void {
-    try retconv1(sql.c.SQLFreeStmt(self.handle(), @intFromEnum(option)));
+pub fn free(self: *const Self, option: enum(u16) { close = c.SQL_CLOSE, drop = c.SQL_DROP, unbind = c.SQL_UNBIND, reset_params = c.SQL_RESET_PARAMS }) !void {
+    try retconv1(c.SQLFreeStmt(self.handle(), @intFromEnum(option)));
 }
 
 pub fn closeCursor(self: *const Self) !void {
-    try retconv1(sql.c.SQLCloseCursor(self.handle()));
+    try retconv1(c.SQLCloseCursor(self.handle()));
 }
 
 pub fn deinit(self: Self) void {
@@ -95,7 +96,7 @@ pub fn colAttributeString(
 ) ![]u8 {
     var str_len: i16 = 0;
     var odbc_buf: [1024]u8 = undefined;
-    return switch (sql.c.SQLColAttribute(
+    return switch (c.SQLColAttribute(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -117,7 +118,7 @@ pub fn colAttributeEnum(
     attr: attrs.ColAttributeEnum,
 ) !attrs.ColAttributeEnumValue {
     var num_val: i64 = undefined;
-    return switch (sql.c.SQLColAttribute(
+    return switch (c.SQLColAttribute(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -139,7 +140,7 @@ pub fn colAttributeInt(
     attr: attrs.ColAttributeInt,
 ) !i64 {
     var num_val: i64 = undefined;
-    return switch (sql.c.SQLColAttribute(
+    return switch (c.SQLColAttribute(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -161,7 +162,7 @@ pub fn colAttributeBool(
     attr: attrs.ColAttributeBool,
 ) !bool {
     var num_val: i64 = undefined;
-    return switch (sql.c.SQLColAttribute(
+    return switch (c.SQLColAttribute(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -171,8 +172,8 @@ pub fn colAttributeBool(
         &num_val,
     )) {
         sqlret.success, sqlret.success_with_info => switch (num_val) {
-            sql.c.SQL_TRUE => true,
-            sql.c.SQL_FALSE => false,
+            c.SQL_TRUE => true,
+            c.SQL_FALSE => false,
             else => unreachable,
         },
         sqlret.err => error.Error,
@@ -184,7 +185,7 @@ pub fn colAttributeBool(
 pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribute) !@FieldType(attrs.ColAttributeValue, @tagName(attr)) {
     const T = @FieldType(attrs.ColAttributeValue, @tagName(attr));
     var num_attr: i64 = 0;
-    try retconv1(sql.c.SQLColAttribute(
+    try retconv1(c.SQLColAttribute(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -195,8 +196,8 @@ pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribu
     ));
     return switch (@typeInfo(T)) {
         .bool => switch (num_attr) {
-            sql.c.SQL_TRUE => true,
-            sql.c.SQL_FALSE => false,
+            c.SQL_TRUE => true,
+            c.SQL_FALSE => false,
             else => unreachable,
         },
         .int => num_attr,
@@ -303,21 +304,21 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.CDataType, data_ptr
         if (self.getData(@intCast(i_col + 1), c_type, data_ptr.*[start..], ind)) {
             if (ind.* >= 0)
                 ind.* += @intCast(start);
-            std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
+            std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == c.SQL_NULL_DATA);
             break;
         } else |e| switch (e) {
             error.GetDataSuccessWithInfo => {},
             error.GetDataNoData => {
                 if (ind.* >= 0)
                     ind.* += @intCast(start);
-                std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == sql.c.SQL_NULL_DATA);
+                std.debug.assert(ind.* >= 0 and ind.* <= data_ptr.*.len or ind.* == c.SQL_NULL_DATA);
                 break;
             },
             else => return e,
         }
         // SuccessWithInfo from here on
         if (ind.* < 0) {
-            std.debug.assert(ind.* == sql.c.SQL_NO_TOTAL);
+            std.debug.assert(ind.* == c.SQL_NO_TOTAL);
             end = data_ptr.*.len * 2;
         } else {
             end = start + @as(usize, @intCast(ind.*)) + size_null_terminator;
@@ -337,7 +338,7 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.CDataType, data_ptr
 }
 
 pub fn getData(self: Self, col_number: u16, c_type: types.CDataType, data: []u8, ind: *i64) !void {
-    return switch (sql.c.SQLGetData(
+    return switch (c.SQLGetData(
         self.handle(),
         col_number,
         @intFromEnum(c_type),
@@ -345,12 +346,12 @@ pub fn getData(self: Self, col_number: u16, c_type: types.CDataType, data: []u8,
         @intCast(data.len),
         ind,
     )) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.GetDataSuccessWithInfo,
-        sql.c.SQL_NO_DATA => error.GetDataNoData,
-        sql.c.SQL_STILL_EXECUTING => error.GetDataStillExecuting,
-        sql.c.SQL_ERROR => error.GetDataError,
-        sql.c.SQL_INVALID_HANDLE => error.GetDataInvalidHandle,
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.GetDataSuccessWithInfo,
+        c.SQL_NO_DATA => error.GetDataNoData,
+        c.SQL_STILL_EXECUTING => error.GetDataStillExecuting,
+        c.SQL_ERROR => error.GetDataError,
+        c.SQL_INVALID_HANDLE => error.GetDataInvalidHandle,
         else => unreachable,
     };
 }
@@ -389,33 +390,33 @@ pub fn bindParameter(self: Self) !void {
 
 pub fn paramData(self: Self, T: type) !?*T {
     var ptr: ?*anyopaque = null;
-    return switch (sql.c.SQLParamData(
+    return switch (c.SQLParamData(
         self.handle(),
         @ptrCast(&ptr),
     )) {
-        sql.c.SQL_SUCCESS => null,
-        sql.c.SQL_NEED_DATA => @alignCast(@ptrCast(ptr orelse unreachable)),
-        sql.c.SQL_SUCCESS_WITH_INFO => error.ParamDataSuccessWithInfo,
-        sql.c.SQL_NO_DATA => error.ParamDataNoData,
-        sql.c.SQL_STILL_EXECUTING => error.ParamDataStillExecuting,
-        sql.c.SQL_ERROR => error.ParamDataError,
-        sql.c.SQL_INVALID_HANDLE => error.ParamDataInvalidHandle,
-        sql.c.SQL_PARAM_DATA_AVAILABLE => error.ParamDataParamDataAvailable,
+        c.SQL_SUCCESS => null,
+        c.SQL_NEED_DATA => @alignCast(@ptrCast(ptr orelse unreachable)),
+        c.SQL_SUCCESS_WITH_INFO => error.ParamDataSuccessWithInfo,
+        c.SQL_NO_DATA => error.ParamDataNoData,
+        c.SQL_STILL_EXECUTING => error.ParamDataStillExecuting,
+        c.SQL_ERROR => error.ParamDataError,
+        c.SQL_INVALID_HANDLE => error.ParamDataInvalidHandle,
+        c.SQL_PARAM_DATA_AVAILABLE => error.ParamDataParamDataAvailable,
         else => unreachable,
     };
 }
 
 pub fn putData(self: Self, data: ?[]u8) !void {
-    return switch (sql.c.SQLPutData(
+    return switch (c.SQLPutData(
         self.handle(),
         if (data) |d| @ptrCast(d.ptr) else null,
-        if (data) |d| @intCast(d.len) else sql.c.SQL_NULL_DATA,
+        if (data) |d| @intCast(d.len) else c.SQL_NULL_DATA,
     )) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.PutDataSuccessWithInfo,
-        sql.c.SQL_STILL_EXECUTING => error.PutDataStillExecuting,
-        sql.c.SQL_ERROR => error.PutDataError,
-        sql.c.SQL_INVALID_HANDLE => error.PutDataInvalidHandle,
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.PutDataSuccessWithInfo,
+        c.SQL_STILL_EXECUTING => error.PutDataStillExecuting,
+        c.SQL_ERROR => error.PutDataError,
+        c.SQL_INVALID_HANDLE => error.PutDataInvalidHandle,
         else => unreachable,
     };
 }
@@ -445,15 +446,15 @@ pub fn execute(self: Self) !void {
 pub fn execDirect(self: Self, stmt_str: []const u8) !void {
     const as_wide = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.c_allocator, stmt_str);
     defer std.heap.c_allocator.free(as_wide);
-    return switch (sql.c.SQLExecDirectW(self.handle(), as_wide.ptr, @intCast(as_wide.len))) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.ExecDirectSuccessWithInfo,
-        sql.c.SQL_NEED_DATA => error.ExecDirectNeedData,
-        sql.c.SQL_STILL_EXECUTING => error.ExecDirectStillExecuting,
-        sql.c.SQL_ERROR => error.ExecDirectError,
-        sql.c.SQL_NO_DATA => error.ExecDirectNoData,
-        sql.c.SQL_INVALID_HANDLE => error.ExecDirectInvalidHandle,
-        sql.c.SQL_PARAM_DATA_AVAILABLE => error.ExecDirectParamDataAvailable,
+    return switch (c.SQLExecDirectW(self.handle(), as_wide.ptr, @intCast(as_wide.len))) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.ExecDirectSuccessWithInfo,
+        c.SQL_NEED_DATA => error.ExecDirectNeedData,
+        c.SQL_STILL_EXECUTING => error.ExecDirectStillExecuting,
+        c.SQL_ERROR => error.ExecDirectError,
+        c.SQL_NO_DATA => error.ExecDirectNoData,
+        c.SQL_INVALID_HANDLE => error.ExecDirectInvalidHandle,
+        c.SQL_PARAM_DATA_AVAILABLE => error.ExecDirectParamDataAvailable,
         else => unreachable,
     };
 }
@@ -461,7 +462,7 @@ pub fn execDirect(self: Self, stmt_str: []const u8) !void {
 pub fn setStmtAttr(self: Self, comptime attr: attrs.StmtAttr, value: @FieldType(attrs.StmtAttrValue, @tagName(attr))) !void {
     const as_union = @unionInit(attrs.StmtAttrValue, @tagName(attr), value);
     const as_usize: usize = @bitCast(as_union);
-    try retconv1(sql.c.SQLSetStmtAttr(
+    try retconv1(c.SQLSetStmtAttr(
         self.handle(),
         @intFromEnum(attr),
         @ptrFromInt(as_usize),
@@ -480,11 +481,11 @@ pub fn setStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr, ptr: [*]u16
 }
 
 fn _setStmtAttrPtr(self: Self, ptr_kind: anytype, ptr: anytype) !void {
-    return switch (sql.c.SQLSetStmtAttr(
+    return switch (c.SQLSetStmtAttr(
         self.handle(),
         @intFromEnum(ptr_kind),
         ptr,
-        sql.c.SQL_IS_POINTER,
+        c.SQL_IS_POINTER,
     )) {
         sqlret.success => {},
         sqlret.success_with_info => error.Info,
@@ -507,14 +508,14 @@ pub fn getStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr) ![*]u16 {
 fn _getStmtAttrPtr(self: Self, ptr_kind: anytype, T: type) !T {
     // var ptr: ?T = null;
     var ptr: ?*anyopaque = null;
-    return switch (sql.c.SQLGetStmtAttr(
+    return switch (c.SQLGetStmtAttr(
         self.handle(),
         @intFromEnum(ptr_kind),
         @ptrCast(&ptr),
         // &ptr,
         // @sizeOf(T),
         0,
-        sql.c.SQL_IS_POINTER,
+        c.SQL_IS_POINTER,
     )) {
         // sqlret.success => ptr orelse unreachable,
         sqlret.success => @alignCast(@ptrCast(ptr orelse unreachable)),
@@ -530,26 +531,26 @@ pub fn getStmtAttr(self: Self) !void {
 }
 
 pub fn moreResults(self: Self) !void {
-    return switch (sql.c.SQLMoreResults(self.handle())) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.MoreResultsSuccessWithInfo,
-        sql.c.SQL_STILL_EXECUTING => error.MoreResultsStillExecuting,
-        sql.c.SQL_NO_DATA => error.MoreResultsNoData,
-        sql.c.SQL_ERROR => error.MoreResultsError,
-        sql.c.SQL_INVALID_HANDLE => error.MoreResultsInvalidHandle,
-        sql.c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
+    return switch (c.SQLMoreResults(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.MoreResultsSuccessWithInfo,
+        c.SQL_STILL_EXECUTING => error.MoreResultsStillExecuting,
+        c.SQL_NO_DATA => error.MoreResultsNoData,
+        c.SQL_ERROR => error.MoreResultsError,
+        c.SQL_INVALID_HANDLE => error.MoreResultsInvalidHandle,
+        c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
         else => unreachable,
     };
 }
 
 pub fn fetch(self: Self) !void {
-    return switch (sql.c.SQLFetch(self.handle())) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.FetchSuccessWithInfo,
-        sql.c.SQL_STILL_EXECUTING => error.FetchStillExecuting,
-        sql.c.SQL_NO_DATA => error.FetchNoData,
-        sql.c.SQL_ERROR => error.FetchError,
-        sql.c.SQL_INVALID_HANDLE => error.FetchInvalidHandle,
+    return switch (c.SQLFetch(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.FetchSuccessWithInfo,
+        c.SQL_STILL_EXECUTING => error.FetchStillExecuting,
+        c.SQL_NO_DATA => error.FetchNoData,
+        c.SQL_ERROR => error.FetchError,
+        c.SQL_INVALID_HANDLE => error.FetchInvalidHandle,
         else => unreachable,
     };
 }
@@ -559,17 +560,17 @@ pub fn fetchScroll(
     orientation: types.FetchOrientation,
     offset: i64,
 ) !void {
-    return switch (sql.c.SQLFetchScroll(
+    return switch (c.SQLFetchScroll(
         self.handle(),
         @intFromEnum(orientation),
         @intCast(offset),
     )) {
-        sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.FetchScrollSuccessWithInfo,
-        sql.c.SQL_STILL_EXECUTING => error.FetchScrollStillExecuting,
-        sql.c.SQL_NO_DATA => error.FetchScrollNoData,
-        sql.c.SQL_ERROR => error.FetchScrollError,
-        sql.c.SQL_INVALID_HANDLE => error.FetchScrollInvalidHandle,
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.FetchScrollSuccessWithInfo,
+        c.SQL_STILL_EXECUTING => error.FetchScrollStillExecuting,
+        c.SQL_NO_DATA => error.FetchScrollNoData,
+        c.SQL_ERROR => error.FetchScrollError,
+        c.SQL_INVALID_HANDLE => error.FetchScrollInvalidHandle,
         else => unreachable,
     };
 }

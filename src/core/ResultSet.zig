@@ -2,7 +2,7 @@ const std = @import("std");
 const core = @import("root.zig");
 const odbc = @import("odbc");
 const CDataType = odbc.types.CDataType;
-const sqlc = odbc.sql.c;
+const c = odbc.c;
 const mem = odbc.mem;
 const RowStatus = odbc.attributes.RowStatus;
 
@@ -208,7 +208,7 @@ pub fn borrowRow(res: *@This()) !?[]?[]u8 {
 
     for (res.borrowed_row, res.columns.items) |*borrowed_row, col| {
         const indicator = col.buf_indicator[res.next_row];
-        if (indicator == sqlc.SQL_NULL_DATA) {
+        if (indicator == c.SQL_NULL_DATA) {
             borrowed_row.* = null;
             continue;
         }

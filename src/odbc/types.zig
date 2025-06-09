@@ -1,18 +1,6 @@
 const std = @import("std");
-
-pub const c = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-});
-
-pub const msodbc = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-    @cInclude("wchar.h");
-    @cInclude("msodbcsql.h");
-});
+const c = @import("c");
+const msodbc = @import("c_ms");
 
 pub const HandleType = enum(c_short) {
     ENV = c.SQL_HANDLE_ENV,

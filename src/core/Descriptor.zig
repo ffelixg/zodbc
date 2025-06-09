@@ -7,7 +7,7 @@ const odbc = @import("odbc");
 const attrs = odbc.attributes;
 const types = odbc.types;
 const sql = odbc.sql;
-const c = odbc.sql.c;
+const c = odbc.c;
 
 fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
     return extern union {
@@ -145,7 +145,7 @@ fn getFieldGeneric(
     comptime descriptor_kind: attrs.StmtAttrHandle,
 ) !FieldType(attr, descriptor_kind) {
     var value_ptr: ?*anyopaque = null;
-    switch (sql.c.SQLGetDescField(
+    switch (c.SQLGetDescField(
         handle,
         col_number,
         @intFromEnum(attr),
@@ -170,7 +170,7 @@ fn setFieldGeneric(
     comptime descriptor_kind: attrs.StmtAttrHandle,
     value: FieldType(attr, descriptor_kind),
 ) !void {
-    return switch (sql.c.SQLSetDescField(
+    return switch (c.SQLSetDescField(
         handle,
         col_number,
         @intFromEnum(attr),

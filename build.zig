@@ -20,13 +20,33 @@ pub fn build(b: *std.Build) void {
     // ----------------------------
     // Module
     // ----------------------------
+    const c_zig = b.addTranslateC(.{
+        .optimize = optimize,
+        .target = target,
+        .root_source_file = b.path("src/c.h"),
+    });
+    c_zig.addIncludePath(std.Build.LazyPath{ .cwd_relative = "/usr/include/" });
+    const c_mod = c_zig.createModule();
+
+    c_mod.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/lib64/" });
+    c_mod.linkSystemLibrary("odbc", .{});
+
+    const c_ms_zig = b.addTranslateC(.{
+        .optimize = optimize,
+        .target = target,
+        .root_source_file = b.path("src/c_ms.h"),
+    });
+    c_ms_zig.addIncludePath(std.Build.LazyPath{ .cwd_relative = "/usr/include/" });
+    const c_ms_mod = c_ms_zig.createModule();
+
     const odbc_mod = b.addModule("odbc", .{
         .root_source_file = b.path("src/odbc/root.zig"),
         .target = target,
         .link_libc = true,
         .optimize = optimize,
     });
-    odbc_mod.linkSystemLibrary("odbc", .{});
+    odbc_mod.addImport("c", c_mod);
+    odbc_mod.addImport("c_ms", c_ms_mod);
 
     const core_mod = b.addModule("core", .{
         .root_source_file = b.path("src/core/root.zig"),

@@ -1,8 +1,4 @@
-pub const c = @cImport({
-    @cInclude("sql.h");
-    @cInclude("sqltypes.h");
-    @cInclude("sqlext.h");
-});
+const c = @import("c");
 
 pub const sqlret = struct {
     pub const success = c.SQL_SUCCESS;

@@ -7,6 +7,7 @@ const odbc = @import("odbc");
 const info = odbc.info;
 const attrs = odbc.attributes;
 const sql = odbc.sql;
+const c = odbc.c;
 
 const InfoType = info.InfoType;
 const InfoTypeValue = info.InfoTypeValue;
@@ -120,7 +121,7 @@ pub fn connectWithString(self: *const Self, dsn: []const u8) !void {
 }
 
 pub fn disconnect(self: *const Self) !void {
-    try retconv1(sql.c.SQLDisconnect(self.handle()));
+    try retconv1(c.SQLDisconnect(self.handle()));
 }
 
 pub const DriverConnectError = error{
