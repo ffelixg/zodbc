@@ -395,12 +395,12 @@ pub fn paramData(self: Self, T: type) !?*T {
     )) {
         sql.c.SQL_SUCCESS => null,
         sql.c.SQL_NEED_DATA => @alignCast(@ptrCast(ptr orelse unreachable)),
-        sql.c.SQL_SUCCESS_WITH_INFO => error.paramDataSuccessWithInfo,
-        sql.c.SQL_NO_DATA => error.paramDataNoData,
-        sql.c.SQL_STILL_EXECUTING => error.paramDataStillExecuting,
-        sql.c.SQL_ERROR => error.paramDataError,
-        sql.c.SQL_INVALID_HANDLE => error.paramDataInvalidHandle,
-        sql.c.SQL_PARAM_DATA_AVAILABLE => error.paramDataParamDataAvailable,
+        sql.c.SQL_SUCCESS_WITH_INFO => error.ParamDataSuccessWithInfo,
+        sql.c.SQL_NO_DATA => error.ParamDataNoData,
+        sql.c.SQL_STILL_EXECUTING => error.ParamDataStillExecuting,
+        sql.c.SQL_ERROR => error.ParamDataError,
+        sql.c.SQL_INVALID_HANDLE => error.ParamDataInvalidHandle,
+        sql.c.SQL_PARAM_DATA_AVAILABLE => error.ParamDataParamDataAvailable,
         else => unreachable,
     };
 }
@@ -412,10 +412,10 @@ pub fn putData(self: Self, data: ?[]u8) !void {
         if (data) |d| @intCast(d.len) else sql.c.SQL_NULL_DATA,
     )) {
         sql.c.SQL_SUCCESS => {},
-        sql.c.SQL_SUCCESS_WITH_INFO => error.putDataSuccessWithInfo,
-        sql.c.SQL_STILL_EXECUTING => error.putDataStillExecuting,
-        sql.c.SQL_ERROR => error.putDataError,
-        sql.c.SQL_INVALID_HANDLE => error.putDataInvalidHandle,
+        sql.c.SQL_SUCCESS_WITH_INFO => error.PutDataSuccessWithInfo,
+        sql.c.SQL_STILL_EXECUTING => error.PutDataStillExecuting,
+        sql.c.SQL_ERROR => error.PutDataError,
+        sql.c.SQL_INVALID_HANDLE => error.PutDataInvalidHandle,
         else => unreachable,
     };
 }
@@ -530,15 +530,27 @@ pub fn getStmtAttr(self: Self) !void {
 }
 
 pub fn moreResults(self: Self) !void {
-    _ = self;
+    return switch (sql.c.SQLMoreResults(self.handle())) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.MoreResultsSuccessWithInfo,
+        sql.c.SQL_STILL_EXECUTING => error.MoreResultsStillExecuting,
+        sql.c.SQL_NO_DATA => error.MoreResultsNoData,
+        sql.c.SQL_ERROR => error.MoreResultsError,
+        sql.c.SQL_INVALID_HANDLE => error.MoreResultsInvalidHandle,
+        sql.c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
+        else => unreachable,
+    };
 }
 
 pub fn fetch(self: Self) !void {
-    return switch (sql.SQLFetch(self.handle())) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => FetchError.Error,
-        .INVALID_HANDLE => FetchError.InvalidHandle,
-        .NO_DATA_FOUND => FetchError.NoDataFound,
+    return switch (sql.c.SQLFetch(self.handle())) {
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.FetchSuccessWithInfo,
+        sql.c.SQL_STILL_EXECUTING => error.FetchStillExecuting,
+        sql.c.SQL_NO_DATA => error.FetchNoData,
+        sql.c.SQL_ERROR => error.FetchError,
+        sql.c.SQL_INVALID_HANDLE => error.FetchInvalidHandle,
+        else => unreachable,
     };
 }
 
@@ -547,16 +559,18 @@ pub fn fetchScroll(
     orientation: types.FetchOrientation,
     offset: i64,
 ) !void {
-    return switch (sql.SQLFetchScroll(
+    return switch (sql.c.SQLFetchScroll(
         self.handle(),
-        orientation,
-        offset,
+        @intFromEnum(orientation),
+        @intCast(offset),
     )) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => FetchScrollError.Error,
-        .INVALID_HANDLE => FetchScrollError.InvalidHandle,
-        // .NEED_DATA => FetchScrollError.NeedData,
-        // .NO_DATA_FOUND => FetchScrollError.NoDataFound,
+        sql.c.SQL_SUCCESS => {},
+        sql.c.SQL_SUCCESS_WITH_INFO => error.FetchScrollSuccessWithInfo,
+        sql.c.SQL_STILL_EXECUTING => error.FetchScrollStillExecuting,
+        sql.c.SQL_NO_DATA => error.FetchScrollNoData,
+        sql.c.SQL_ERROR => error.FetchScrollError,
+        sql.c.SQL_INVALID_HANDLE => error.FetchScrollInvalidHandle,
+        else => unreachable,
     };
 }
 

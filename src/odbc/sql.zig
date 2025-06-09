@@ -174,18 +174,6 @@ pub fn SQLPrepare(
     return @enumFromInt(return_code);
 }
 
-pub fn SQLExecDirect(
-    handle: ?*anyopaque,
-    stmt_str: []const u8,
-) rc.ExecDirectRC {
-    const return_code = c.SQLExecDirect(
-        handle,
-        @ptrCast(@constCast(stmt_str)),
-        @intCast(stmt_str.len),
-    );
-    return @enumFromInt(return_code);
-}
-
 pub fn SQLNumResultCols(
     handle: ?*anyopaque,
     column_count: *usize,
@@ -236,24 +224,6 @@ pub fn SQLExecute(
     handle: ?*anyopaque,
 ) rc.ExecuteRC {
     const return_code = c.SQLExecute(handle);
-    return @enumFromInt(return_code);
-}
-
-pub fn SQLFetch(handle: ?*anyopaque) rc.FetchRC {
-    const return_code = c.SQLFetch(handle);
-    return @enumFromInt(return_code);
-}
-
-pub fn SQLFetchScroll(
-    handle: ?*anyopaque,
-    orientation: types.FetchOrientation,
-    offset: i64,
-) rc.FetchScrollRC {
-    const return_code = c.SQLFetchScroll(
-        handle,
-        @intFromEnum(orientation),
-        @intCast(offset),
-    );
     return @enumFromInt(return_code);
 }
 

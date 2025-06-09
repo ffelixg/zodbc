@@ -168,7 +168,7 @@ pub fn borrowRow(res: *@This()) !?[]?[]u8 {
         std.debug.assert(res.next_row == res.odbc_buf_rows);
         {
             res.stmt.fetch() catch |err| switch (err) {
-                error.NoDataFound => return null,
+                error.FetchNoData => return null,
                 else => return err,
             };
         }

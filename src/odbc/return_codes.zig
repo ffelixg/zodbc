@@ -129,29 +129,3 @@ pub const ExecuteRC = enum(c_short) {
     NEED_DATA = c.SQL_NEED_DATA,
     NO_DATA_FOUND = c.SQL_NO_DATA_FOUND,
 };
-
-pub const ExecDirectRC = enum(c_short) {
-    SUCCESS = c.SQL_SUCCESS,
-    SUCCESS_WITH_INFO = c.SQL_SUCCESS_WITH_INFO,
-    ERR = c.SQL_ERROR,
-    INVALID_HANDLE = c.SQL_INVALID_HANDLE,
-    NEED_DATA = c.SQL_NEED_DATA,
-    NO_DATA_FOUND = c.SQL_NO_DATA_FOUND,
-};
-
-pub const FetchRC = enum(c_short) {
-    SUCCESS = c.SQL_SUCCESS,
-    SUCCESS_WITH_INFO = c.SQL_SUCCESS_WITH_INFO,
-    ERR = c.SQL_ERROR,
-    INVALID_HANDLE = c.SQL_INVALID_HANDLE,
-    NO_DATA_FOUND = c.SQL_NO_DATA_FOUND,
-};
-
-pub const FetchScrollRC = enum(c_short) {
-    SUCCESS = c.SQL_SUCCESS,
-    SUCCESS_WITH_INFO = c.SQL_SUCCESS_WITH_INFO,
-    ERR = c.SQL_ERROR,
-    INVALID_HANDLE = c.SQL_INVALID_HANDLE,
-    // NEED_DATA = c.SQL_NEED_DATA,
-    // NO_DATA_FOUND = c.SQL_NO_DATA_FOUND,
-};
