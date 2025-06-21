@@ -1,6 +1,5 @@
 const std = @import("std");
 const c = @import("c");
-const msodbc = @import("c_ms");
 
 pub const HandleType = enum(c_short) {
     ENV = c.SQL_HANDLE_ENV,
@@ -86,12 +85,12 @@ pub const ColDescription = struct {
 pub const SQLDataType = enum(i16) {
     // https://learn.microsoft.com/en-us/sql/relational-databases/native-client-odbc-date-time/data-type-support-for-odbc-date-and-time-improvements?view=sql-server-ver15
     // SQL Server types
-    ss_timestampoffset = msodbc.SQL_SS_TIMESTAMPOFFSET,
-    ss_time2 = msodbc.SQL_SS_TIME2,
-    ss_table = msodbc.SQL_SS_TABLE,
-    ss_xml = msodbc.SQL_SS_XML,
-    ss_udt = msodbc.SQL_SS_UDT,
-    ss_variant = msodbc.SQL_SS_VARIANT,
+    ss_timestampoffset = c.SQL_SS_TIMESTAMPOFFSET,
+    ss_time2 = c.SQL_SS_TIME2,
+    ss_table = c.SQL_SS_TABLE,
+    ss_xml = c.SQL_SS_XML,
+    ss_udt = c.SQL_SS_UDT,
+    ss_variant = c.SQL_SS_VARIANT,
 
     guid = c.SQL_GUID,
     wlongvarchar = c.SQL_WLONGVARCHAR,
@@ -138,8 +137,8 @@ pub const SQLDataType = enum(i16) {
 };
 
 pub const CDataType = enum(c_short) {
-    ss_time2 = msodbc.SQL_C_SS_TIME2,
-    ss_timestampoffset = msodbc.SQL_C_SS_TIMESTAMPOFFSET,
+    ss_time2 = c.SQL_C_SS_TIME2,
+    ss_timestampoffset = c.SQL_C_SS_TIMESTAMPOFFSET,
 
     utinyint = c.SQL_C_UTINYINT,
     stinyint = c.SQL_C_STINYINT,
@@ -215,8 +214,8 @@ pub const CDataType = enum(c_short) {
             .type_timestamp => c.SQL_TIMESTAMP_STRUCT,
             .numeric => c.SQL_NUMERIC_STRUCT,
             .guid => c.SQLGUID,
-            .ss_time2 => msodbc.SQL_SS_TIME2_STRUCT,
-            .ss_timestampoffset => msodbc.SQL_SS_TIMESTAMPOFFSET_STRUCT,
+            .ss_time2 => c.SQL_SS_TIME2_STRUCT,
+            .ss_timestampoffset => c.SQL_SS_TIMESTAMPOFFSET_STRUCT,
             else => null,
         };
     }
