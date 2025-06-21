@@ -13,7 +13,6 @@ const InfoType = info.InfoType;
 const InfoTypeValue = info.InfoTypeValue;
 const Attribute = attrs.ConnectionAttribute;
 const AttributeValue = attrs.ConnectionAttributeValue;
-const retconv1 = odbc.return_codes.retconv1;
 
 const Self = @This();
 
@@ -107,21 +106,36 @@ pub fn setConnectAttr(
     };
 }
 
-pub fn connectWithString(self: *const Self, dsn: []const u8) !void {
-    return switch (sql.SQLDriverConnect(self.handle(), dsn)) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => {
-            const lastError = self.getLastError();
-            std.debug.print("lastError: {}\n", .{lastError});
-            return DriverConnectError.Error;
-        },
-        .INVALID_HANDLE => DriverConnectError.InvalidHandle,
-        .NO_DATA_FOUND => DriverConnectError.NoDataFound,
+pub fn connectWithString(self: *const Self, constr: []const u8) !void {
+    const constr_16 = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.smp_allocator, constr);
+    defer std.heap.smp_allocator.free(constr_16);
+    return switch (c.SQLDriverConnectW(
+        self.handle(),
+        null,
+        @ptrCast(@constCast(constr_16)),
+        @intCast(constr_16.len),
+        null,
+        0,
+        null,
+        c.SQL_DRIVER_NOPROMPT,
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => {},
+        c.SQL_ERROR => error.DriverConnectError,
+        c.SQL_INVALID_HANDLE => return error.DriverConnectInvalidHandle,
+        c.SQL_NO_DATA => return error.DriverConnectNoData,
+        else => unreachable,
     };
 }
 
 pub fn disconnect(self: *const Self) !void {
-    try retconv1(c.SQLDisconnect(self.handle()));
+    return switch (c.SQLDisconnect(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.DisconnectSuccessWithInfo,
+        c.SQL_ERROR => error.DisconnectError,
+        c.SQL_INVALID_HANDLE => return error.DisconnectInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub const DriverConnectError = error{

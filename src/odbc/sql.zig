@@ -108,28 +108,6 @@ pub fn SQLSetConnectAttr(
     return @enumFromInt(return_code);
 }
 
-pub const MAX_DSN_LEN = 1024;
-
-pub fn SQLDriverConnect(
-    handle: ?*anyopaque,
-    dsn: []const u8,
-) rc.DriverConnectRC {
-    // @note: We ignore the driver transformed dsn
-    var con_str_out_buf: [MAX_DSN_LEN]u8 = undefined;
-    var pcb_con_str_out: c_short = 0;
-    const return_code = c.SQLDriverConnect(
-        handle,
-        null,
-        @ptrCast(@constCast(dsn)),
-        @intCast(dsn.len),
-        con_str_out_buf[0..],
-        con_str_out_buf.len,
-        &pcb_con_str_out,
-        c.SQL_DRIVER_NOPROMPT,
-    );
-    return @enumFromInt(return_code);
-}
-
 pub fn SQLColumns(
     handle: ?*anyopaque,
     catalog_name: []const u8,
@@ -508,15 +486,15 @@ pub const odbc_error_map = std.StaticStringMap(SqlState).initComptime(.{
 pub const LastError = error{NoError} || SqlStateError;
 pub fn getLastError(handle_type: types.HandleType, handle: ?*anyopaque) LastError {
     var num_records: u64 = 0;
-    _ = c.SQLGetDiagField(@intFromEnum(handle_type), handle, 0, @intFromEnum(DiagnosticIdentifier.Number), &num_records, 0, null);
+    _ = c.SQLGetDiagFieldW(@intFromEnum(handle_type), handle, 0, @intFromEnum(DiagnosticIdentifier.Number), &num_records, 0, null);
 
     if (num_records == 0) return error.NoError;
 
-    var sql_state: [5:0]u8 = undefined;
+    var sql_state_16: [5:0]u16 = undefined;
     // var native_error: [1024:0]u8 = undefined;
-    var message_text: [1024:0]u8 = undefined;
+    var message_text_16: [1024:0]u16 = undefined;
 
-    const result = c.SQLGetDiagRec(@intFromEnum(handle_type), handle, 1, sql_state[0..], null, message_text[0..], 1024, null);
+    const result = c.SQLGetDiagRecW(@intFromEnum(handle_type), handle, 1, sql_state_16[0..], null, message_text_16[0..], 1024, null);
     // switch (@as(odbc.SqlReturn, @enumFromInt(result))) {
     //     .success, .success_with_info => {
     //         const error_state = odbc_error_map.get(sql_state[0..]) orelse .GeneralError;
@@ -526,6 +504,10 @@ pub fn getLastError(handle_type: types.HandleType, handle: ?*anyopaque) LastErro
     //     else => return SqlStateError.GeneralError,
     // }
     std.debug.print("SQLGetDiagRec rc= {}\n", .{result});
+    const message_text = std.unicode.wtf16LeToWtf8Alloc(std.heap.smp_allocator, &message_text_16) catch unreachable;
+    defer std.heap.smp_allocator.free(message_text);
+    const sql_state = std.unicode.wtf16LeToWtf8Alloc(std.heap.smp_allocator, &sql_state_16) catch unreachable;
+    defer std.heap.smp_allocator.free(sql_state);
     std.debug.print("message_text = {s}\n", .{message_text});
     if (result == 0 or result == 1) {
         const error_state = odbc_error_map.get(sql_state[0..]) orelse .GeneralError;

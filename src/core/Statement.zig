@@ -9,11 +9,9 @@ const Connection = @import("Connection.zig");
 const odbc = @import("odbc");
 const attrs = odbc.attributes;
 const rc = odbc.return_codes;
-const sqlret = odbc.return_codes.sqlret;
 const types = odbc.types;
 const sql = odbc.sql;
 const c = odbc.c;
-const retconv1 = odbc.return_codes.retconv1;
 
 const Self = @This();
 
@@ -25,11 +23,26 @@ pub fn init(con: Connection) !Self {
 }
 
 pub fn free(self: *const Self, option: enum(u16) { close = c.SQL_CLOSE, drop = c.SQL_DROP, unbind = c.SQL_UNBIND, reset_params = c.SQL_RESET_PARAMS }) !void {
-    try retconv1(c.SQLFreeStmt(self.handle(), @intFromEnum(option)));
+    return switch (c.SQLFreeStmt(
+        self.handle(),
+        @intFromEnum(option),
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.FreeStmtSuccessWithInfo,
+        c.SQL_ERROR => error.FreeStmtError,
+        c.SQL_INVALID_HANDLE => error.FreeStmtInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn closeCursor(self: *const Self) !void {
-    try retconv1(c.SQLCloseCursor(self.handle()));
+    return switch (c.SQLCloseCursor(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.CloseCursorSuccessWithInfo,
+        c.SQL_ERROR => error.CloseCursorError,
+        c.SQL_INVALID_HANDLE => error.CloseCursorInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn deinit(self: Self) void {
@@ -95,8 +108,8 @@ pub fn colAttributeString(
     allocator: std.mem.Allocator,
 ) ![]u8 {
     var str_len: i16 = 0;
-    var odbc_buf: [1024]u8 = undefined;
-    return switch (c.SQLColAttribute(
+    var odbc_buf: [1024]u16 = undefined;
+    return switch (c.SQLColAttributeW(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -105,79 +118,10 @@ pub fn colAttributeString(
         &str_len,
         null,
     )) {
-        sqlret.success, sqlret.success_with_info => try allocator.dupe(u8, odbc_buf[0..@intCast(str_len)]),
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
-}
-
-pub fn colAttributeEnum(
-    self: Self,
-    col_number: u16,
-    attr: attrs.ColAttributeEnum,
-) !attrs.ColAttributeEnumValue {
-    var num_val: i64 = undefined;
-    return switch (c.SQLColAttribute(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        null,
-        0,
-        null,
-        &num_val,
-    )) {
-        sqlret.success, sqlret.success_with_info => attrs.ColAttributeEnumValue.init(attr, num_val),
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
-}
-
-pub fn colAttributeInt(
-    self: Self,
-    col_number: u16,
-    attr: attrs.ColAttributeInt,
-) !i64 {
-    var num_val: i64 = undefined;
-    return switch (c.SQLColAttribute(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        null,
-        0,
-        null,
-        &num_val,
-    )) {
-        sqlret.success, sqlret.success_with_info => num_val,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
-        else => unreachable,
-    };
-}
-
-pub fn colAttributeBool(
-    self: Self,
-    col_number: u16,
-    attr: attrs.ColAttributeBool,
-) !bool {
-    var num_val: i64 = undefined;
-    return switch (c.SQLColAttribute(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        null,
-        0,
-        null,
-        &num_val,
-    )) {
-        sqlret.success, sqlret.success_with_info => switch (num_val) {
-            c.SQL_TRUE => true,
-            c.SQL_FALSE => false,
-            else => unreachable,
-        },
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
+        c.SQL_SUCCESS => try std.unicode.wtf16LeToWtf8Alloc(allocator, odbc_buf[0..@intCast(str_len)]),
+        c.SQL_SUCCESS_WITH_INFO => error.ColAttibuteSuccessWithInfo,
+        c.SQL_ERROR => error.ColAttributeError,
+        c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
         else => unreachable,
     };
 }
@@ -185,7 +129,7 @@ pub fn colAttributeBool(
 pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribute) !@FieldType(attrs.ColAttributeValue, @tagName(attr)) {
     const T = @FieldType(attrs.ColAttributeValue, @tagName(attr));
     var num_attr: i64 = 0;
-    try retconv1(c.SQLColAttribute(
+    return switch (c.SQLColAttributeW(
         self.handle(),
         col_number,
         @intFromEnum(attr),
@@ -193,15 +137,21 @@ pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribu
         0,
         null,
         &num_attr,
-    ));
-    return switch (@typeInfo(T)) {
-        .bool => switch (num_attr) {
-            c.SQL_TRUE => true,
-            c.SQL_FALSE => false,
+    )) {
+        c.SQL_SUCCESS => switch (@typeInfo(T)) {
+            .bool => switch (num_attr) {
+                c.SQL_TRUE => true,
+                c.SQL_FALSE => false,
+                else => unreachable,
+            },
+            .int => num_attr,
+            .@"enum" => @enumFromInt(num_attr),
             else => unreachable,
         },
-        .int => num_attr,
-        .@"enum" => @enumFromInt(num_attr),
+        c.SQL_SUCCESS_WITH_INFO => error.ColAttributeSuccessWithInfo,
+        c.SQL_ERROR => error.ColAttributeError,
+        c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
+        c.SQL_NO_DATA => error.ColAttributeNoData,
         else => unreachable,
     };
 }
@@ -459,75 +409,46 @@ pub fn execDirect(self: Self, stmt_str: []const u8) !void {
     };
 }
 
-pub fn setStmtAttr(self: Self, comptime attr: attrs.StmtAttr, value: @FieldType(attrs.StmtAttrValue, @tagName(attr))) !void {
-    const as_union = @unionInit(attrs.StmtAttrValue, @tagName(attr), value);
-    const as_usize: usize = @bitCast(as_union);
-    try retconv1(c.SQLSetStmtAttr(
+pub fn setStmtAttr(
+    self: Self,
+    comptime attr: attrs.StmtAttr,
+    value: @FieldType(attrs.StmtAttrValue, @tagName(attr)),
+) !void {
+    return switch (c.SQLSetStmtAttrW(
         self.handle(),
         @intFromEnum(attr),
-        @ptrFromInt(as_usize),
+        @ptrFromInt(@import("utils.zig").toUsize(value)),
         0,
-    ));
-}
-
-pub fn setStmtAttrHandle(self: Self, ptr_kind: attrs.StmtAttrHandle, ptr: *anyopaque) !void {
-    return self._setStmtAttrPtr(ptr_kind, ptr);
-}
-pub fn setStmtAttrU64Ptr(self: Self, ptr_kind: attrs.StmtAttrU64Ptr, ptr: [*]u64) !void {
-    return self._setStmtAttrPtr(ptr_kind, ptr);
-}
-pub fn setStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr, ptr: [*]u16) !void {
-    return self._setStmtAttrPtr(ptr_kind, ptr);
-}
-
-fn _setStmtAttrPtr(self: Self, ptr_kind: anytype, ptr: anytype) !void {
-    return switch (c.SQLSetStmtAttr(
-        self.handle(),
-        @intFromEnum(ptr_kind),
-        ptr,
-        c.SQL_IS_POINTER,
     )) {
-        sqlret.success => {},
-        sqlret.success_with_info => error.Info,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.SetStmtAttrSuccessWithInfo,
+        c.SQL_ERROR => error.SetStmtAttrError,
+        c.SQL_INVALID_HANDLE => error.SetStmtAttrInvalidHandle,
         else => unreachable,
     };
 }
 
-pub fn getStmtAttrHandle(self: Self, ptr_kind: attrs.StmtAttrHandle) !*anyopaque {
-    return self._getStmtAttrPtr(ptr_kind, *anyopaque);
-}
-pub fn getStmtAttrU64Ptr(self: Self, ptr_kind: attrs.StmtAttrU64Ptr) ![*]u64 {
-    return self._getStmtAttrPtr(ptr_kind, [*]u64);
-}
-pub fn getStmtAttrU16Ptr(self: Self, ptr_kind: attrs.StmtAttrU16Ptr) ![*]u16 {
-    return self._getStmtAttrPtr(ptr_kind, [*]u16);
-}
-
-fn _getStmtAttrPtr(self: Self, ptr_kind: anytype, T: type) !T {
-    // var ptr: ?T = null;
-    var ptr: ?*anyopaque = null;
-    return switch (c.SQLGetStmtAttr(
+pub fn getStmtAttr(
+    self: Self,
+    comptime attr: attrs.StmtAttr,
+) !@FieldType(attrs.StmtAttrValue, @tagName(attr)) {
+    var value_ptr: ?*anyopaque = null;
+    return switch (c.SQLGetStmtAttrW(
         self.handle(),
-        @intFromEnum(ptr_kind),
-        @ptrCast(&ptr),
-        // &ptr,
-        // @sizeOf(T),
+        @intFromEnum(attr),
+        @ptrCast(&value_ptr),
         0,
-        c.SQL_IS_POINTER,
+        null,
     )) {
-        // sqlret.success => ptr orelse unreachable,
-        sqlret.success => @alignCast(@ptrCast(ptr orelse unreachable)),
-        sqlret.success_with_info => error.Info,
-        sqlret.err => error.Error,
-        sqlret.invalid_handle => error.InvalidHandle,
+        c.SQL_SUCCESS => @import("utils.zig").fromUsize(
+            @FieldType(attrs.StmtAttrValue, @tagName(attr)),
+            @intFromPtr(value_ptr),
+        ),
+        c.SQL_SUCCESS_WITH_INFO => error.GetStmtAttrSuccessWithInfo,
+        c.SQL_ERROR => error.GetStmtAttrError,
+        c.SQL_INVALID_HANDLE => error.GetStmtAttrInvalidHandle,
         else => unreachable,
     };
-}
-
-pub fn getStmtAttr(self: Self) !void {
-    _ = self;
 }
 
 pub fn moreResults(self: Self) !void {

@@ -529,33 +529,22 @@ pub const StmtAttr = enum(i32) {
     use_bookmarks = c.SQL_ATTR_USE_BOOKMARKS,
 };
 
-pub const StmtAttrValue = extern union {
+pub const StmtAttrValue = union {
+    app_param_desc: ?*anyopaque,
+    app_row_desc: ?*anyopaque,
+    imp_param_desc: ?*anyopaque,
+    imp_row_desc: ?*anyopaque,
     /// 0 if binding by column, sizeof struct if binding by row
     row_bind_type: u64,
     row_status_ptr: ?[*]RowStatus,
+    param_operation_ptr: ?[*]ParamOperation,
+    param_status_ptr: ?[*]ParamStatus,
+    row_operation_ptr: ?[*]RowOperation,
     row_array_size: u64,
-    rows_fetched_ptr: *u64,
-};
-
-pub const StmtAttrHandle = enum(u16) {
-    app_param_desc = c.SQL_ATTR_APP_PARAM_DESC,
-    app_row_desc = c.SQL_ATTR_APP_ROW_DESC,
-    imp_param_desc = c.SQL_ATTR_IMP_PARAM_DESC,
-    imp_row_desc = c.SQL_ATTR_IMP_ROW_DESC,
-};
-
-pub const StmtAttrU16Ptr = enum(u16) {
-    param_operation_ptr = c.SQL_ATTR_PARAM_OPERATION_PTR,
-    param_status_ptr = c.SQL_ATTR_PARAM_STATUS_PTR,
-    row_operation_ptr = c.SQL_ATTR_ROW_OPERATION_PTR,
-    row_status_ptr = c.SQL_ATTR_ROW_STATUS_PTR,
-};
-
-pub const StmtAttrU64Ptr = enum(u16) {
-    param_bind_offset_ptr = c.SQL_ATTR_PARAM_BIND_OFFSET_PTR,
-    params_processed_ptr = c.SQL_ATTR_PARAMS_PROCESSED_PTR,
-    row_bind_offset_ptr = c.SQL_ATTR_ROW_BIND_OFFSET_PTR,
-    rows_fetched_ptr = c.SQL_ATTR_ROWS_FETCHED_PTR,
+    rows_fetched_ptr: ?*u64,
+    param_bind_offset_ptr: ?*u64,
+    params_processed_ptr: ?*u64,
+    row_bind_offset_ptr: ?*u64,
 };
 
 //
@@ -605,56 +594,6 @@ pub const ColAttributeString = enum(u16) {
     type_name = c.SQL_DESC_TYPE_NAME,
 };
 
-pub const ColAttributeInt = enum(u16) {
-    count = c.SQL_DESC_COUNT,
-    display_size = c.SQL_DESC_DISPLAY_SIZE,
-    length = c.SQL_DESC_LENGTH,
-    octet_length = c.SQL_DESC_OCTET_LENGTH,
-    precision = c.SQL_DESC_PRECISION,
-    scale = c.SQL_DESC_SCALE,
-};
-
-pub const ColAttributeBool = enum(u16) {
-    auto_unique_value = c.SQL_DESC_AUTO_UNIQUE_VALUE,
-    case_sensitive = c.SQL_DESC_CASE_SENSITIVE,
-    fixed_prec_scale = c.SQL_DESC_FIXED_PREC_SCALE,
-    unsigned = c.SQL_DESC_UNSIGNED,
-};
-
-pub const ColAttributeEnum = enum(u16) {
-    concise_type = c.SQL_DESC_CONCISE_TYPE,
-    nullable = c.SQL_DESC_NULLABLE,
-    num_prec_radix = c.SQL_DESC_NUM_PREC_RADIX,
-    searchable = c.SQL_DESC_SEARCHABLE,
-    type = c.SQL_DESC_TYPE,
-    unnamed = c.SQL_DESC_UNNAMED,
-    updatable = c.SQL_DESC_UPDATABLE,
-};
-
-pub const ColAttributeEnumValue = union(ColAttributeEnum) {
-    concise_type: types.SQLDataType,
-    nullable: Nullable,
-    num_prec_radix: NumPrecRadix,
-    searchable: Searchable,
-    type: types.SQLDataType,
-    unnamed: Unnamed,
-    updatable: Updatable,
-
-    pub fn init(
-        attr: ColAttributeEnum,
-        num_val: i64,
-    ) !ColAttributeEnumValue {
-        return switch (attr) {
-            .concise_type => .{ .concise_type = @enumFromInt(num_val) },
-            .nullable => .{ .nullable = @enumFromInt(num_val) },
-            .num_prec_radix => .{ .num_prec_radix = @enumFromInt(num_val) },
-            .searchable => .{ .searchable = @enumFromInt(num_val) },
-            .type => .{ .type = @enumFromInt(num_val) },
-            .unnamed => .{ .unnamed = @enumFromInt(num_val) },
-            .updatable => .{ .updatable = @enumFromInt(num_val) },
-        };
-    }
-};
 /// The integer codes for ODBC compliant column attributes
 pub const ColAttribute = enum(u16) {
     count = c.SQL_DESC_COUNT,
@@ -694,19 +633,4 @@ pub const ColAttributeValue = union(ColAttribute) {
     type: types.SQLDataType,
     unnamed: Unnamed,
     updatable: Updatable,
-
-    pub fn init(
-        attr: ColAttributeEnum,
-        num_val: i64,
-    ) !ColAttributeEnumValue {
-        return switch (attr) {
-            .concise_type => .{ .concise_type = @enumFromInt(num_val) },
-            .nullable => .{ .nullable = @enumFromInt(num_val) },
-            .num_prec_radix => .{ .num_prec_radix = @enumFromInt(num_val) },
-            .searchable => .{ .searchable = @enumFromInt(num_val) },
-            .type => .{ .type = @enumFromInt(num_val) },
-            .unnamed => .{ .unnamed = @enumFromInt(num_val) },
-            .updatable => .{ .updatable = @enumFromInt(num_val) },
-        };
-    }
 };

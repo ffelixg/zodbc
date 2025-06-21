@@ -9,8 +9,10 @@ const types = odbc.types;
 const sql = odbc.sql;
 const c = odbc.c;
 
-fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
-    return extern union {
+const DescriptorKind = enum { imp_row_desc, app_row_desc, imp_param_desc, app_param_desc };
+
+fn FieldValueUnion(comptime descriptor_kind: DescriptorKind) type {
+    return union {
         alloc_type: attrs.AllocType,
         array_size: u64,
         array_status_ptr: switch (descriptor_kind) {
@@ -66,7 +68,7 @@ fn FieldValueUnion(comptime descriptor_kind: attrs.StmtAttrHandle) type {
     };
 }
 
-fn FieldType(comptime attr: anytype, comptime descriptor_kind: attrs.StmtAttrHandle) type {
+fn FieldType(comptime attr: anytype, comptime descriptor_kind: DescriptorKind) type {
     const T = @FieldType(FieldValueUnion(descriptor_kind), @tagName(attr));
     switch (@typeInfo(T)) {
         .pointer => |info| {
@@ -79,70 +81,11 @@ fn FieldType(comptime attr: anytype, comptime descriptor_kind: attrs.StmtAttrHan
     return T;
 }
 
-inline fn fromUsize(T: type, val: usize) T {
-    switch (@typeInfo(T)) {
-        .pointer => return @ptrFromInt(val),
-        .optional => |info| {
-            comptime std.debug.assert(@typeInfo(info.child) == .pointer);
-            return @ptrFromInt(val);
-        },
-        .int => |info| {
-            switch (info.signedness) {
-                .signed => {
-                    const sval: isize = @bitCast(val);
-                    return @intCast(sval);
-                },
-                .unsigned => return @intCast(val),
-            }
-        },
-        .@"enum" => |info| {
-            switch (@typeInfo(info.tag_type).int.signedness) {
-                .signed => {
-                    const sval: isize = @bitCast(val);
-                    return @enumFromInt(sval);
-                },
-                .unsigned => return @enumFromInt(val),
-            }
-        },
-        .bool => return switch (val) {
-            0 => false,
-            1 => true,
-            else => unreachable,
-        },
-        else => @compileError(@typeName(T)),
-    }
-}
-
-inline fn toUsize(val: anytype) usize {
-    switch (@typeInfo(@TypeOf(val))) {
-        .pointer => return @intFromPtr(val),
-        .optional => |info| {
-            comptime std.debug.assert(@typeInfo(info.child) == .pointer);
-            return @intFromPtr(val);
-        },
-        .int => |info| {
-            switch (info.signedness) {
-                .signed => return @bitCast(@as(isize, val)),
-                .unsigned => return @as(usize, val),
-            }
-        },
-        .@"enum" => {
-            const as_int = @intFromEnum(val);
-            switch (@typeInfo(@TypeOf(as_int)).int.signedness) {
-                .signed => return @bitCast(@as(isize, as_int)),
-                .unsigned => return @as(usize, as_int),
-            }
-        },
-        .bool => @intFromBool(val),
-        else => @compileError(@typeName(@TypeOf(val))),
-    }
-}
-
 fn getFieldGeneric(
     handle: ?*anyopaque,
     col_number: i16,
     comptime attr: anytype,
-    comptime descriptor_kind: attrs.StmtAttrHandle,
+    comptime descriptor_kind: DescriptorKind,
 ) !FieldType(attr, descriptor_kind) {
     var value_ptr: ?*anyopaque = null;
     switch (c.SQLGetDescField(
@@ -160,21 +103,21 @@ fn getFieldGeneric(
         c.SQL_INVALID_HANDLE => return error.GetDescFieldInvalidHandle,
         else => unreachable,
     }
-    return fromUsize(FieldType(attr, descriptor_kind), @intFromPtr(value_ptr));
+    return @import("utils.zig").fromUsize(FieldType(attr, descriptor_kind), @intFromPtr(value_ptr));
 }
 
 fn setFieldGeneric(
     handle: ?*anyopaque,
     col_number: i16,
     comptime attr: anytype,
-    comptime descriptor_kind: attrs.StmtAttrHandle,
+    comptime descriptor_kind: DescriptorKind,
     value: FieldType(attr, descriptor_kind),
 ) !void {
-    return switch (c.SQLSetDescField(
+    return switch (c.SQLSetDescFieldW(
         handle,
         col_number,
         @intFromEnum(attr),
-        @ptrFromInt(toUsize(value)),
+        @ptrFromInt(@import("utils.zig").toUsize(value)),
         0,
     )) {
         c.SQL_SUCCESS => {},
@@ -364,7 +307,7 @@ pub const AppRowDesc = struct {
 
     pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
-            .handle = try stmt.getStmtAttrHandle(.app_row_desc),
+            .handle = try stmt.getStmtAttr(.app_row_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
@@ -414,7 +357,7 @@ pub const ImpRowDesc = struct {
 
     pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
-            .handle = try stmt.getStmtAttrHandle(.imp_row_desc),
+            .handle = try stmt.getStmtAttr(.imp_row_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
@@ -464,7 +407,7 @@ pub const AppParamDesc = struct {
 
     pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
-            .handle = try stmt.getStmtAttrHandle(.app_param_desc),
+            .handle = try stmt.getStmtAttr(.app_param_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
@@ -514,7 +457,7 @@ pub const ImpParamDesc = struct {
 
     pub fn fromStatement(stmt: Statement) !Self {
         const handler: Handle = .{
-            .handle = try stmt.getStmtAttrHandle(.imp_param_desc),
+            .handle = try stmt.getStmtAttr(.imp_param_desc),
             .handle_type = .DESC,
         };
         return .{ .handler = handler };
