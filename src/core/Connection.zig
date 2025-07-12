@@ -60,6 +60,51 @@ pub fn getInfo(
     };
 }
 
+fn _getInfoString(
+    self: Self,
+    info_type: info.InfoTypeString,
+    allocator: std.mem.Allocator,
+    comptime zero_term: bool,
+) !if (zero_term) [:0]const u8 else []const u8 {
+    var str_len: i16 = 0;
+    var odbc_buf: [1024]u16 = undefined;
+    return switch (c.SQLGetInfoW(
+        self.handle(),
+        @intFromEnum(info_type),
+        @ptrCast(&odbc_buf),
+        @intCast(odbc_buf.len),
+        &str_len,
+    )) {
+        c.SQL_SUCCESS => {
+            const decode = if (zero_term)
+                std.unicode.wtf16LeToWtf8AllocZ
+            else
+                std.unicode.wtf16LeToWtf8Alloc;
+            return try decode(allocator, odbc_buf[0..@intCast(@divExact(str_len, 2))]);
+        },
+        c.SQL_SUCCESS_WITH_INFO => error.GetInfoSuccessWithInfo,
+        c.SQL_ERROR => error.GetInfoError,
+        c.SQL_INVALID_HANDLE => return error.GetInfoInvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn getInfoString(
+    self: Self,
+    allocator: std.mem.Allocator,
+    info_type: info.InfoTypeString,
+) ![]const u8 {
+    return self._getInfoString(info_type, allocator, false);
+}
+
+pub fn getInfoStringZ(
+    self: Self,
+    allocator: std.mem.Allocator,
+    info_type: info.InfoTypeString,
+) ![:0]const u8 {
+    return self._getInfoString(info_type, allocator, true);
+}
+
 pub fn getConnectAttr(
     self: Self,
     allocator: std.mem.Allocator,
@@ -83,6 +128,20 @@ pub fn getConnectAttr(
         },
         .INVALID_HANDLE => GetConnectAttrError.InvalidHandle,
         .NO_DATA => GetConnectAttrError.NoData,
+    };
+}
+
+pub fn endTran(self: *const Self, completion: enum(u2) { commit = c.SQL_COMMIT, rollback = c.SQL_ROLLBACK }) !void {
+    return switch (c.SQLEndTran(
+        @intFromEnum(self.handler.handle_type),
+        self.handle(),
+        @intFromEnum(completion),
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.EndTranSuccessWithInfo,
+        c.SQL_ERROR => error.EndTranError,
+        c.SQL_INVALID_HANDLE => return error.EndTranInvalidHandle,
+        else => unreachable,
     };
 }
 

@@ -134,18 +134,6 @@ pub fn SQLColumns(
     return @enumFromInt(return_code);
 }
 
-pub fn SQLPrepare(
-    handle: ?*anyopaque,
-    stmt_str: []const u8,
-) rc.PrepareRC {
-    const return_code = c.SQLPrepare(
-        handle,
-        @ptrCast(@constCast(stmt_str)),
-        @intCast(stmt_str.len),
-    );
-    return @enumFromInt(return_code);
-}
-
 pub fn SQLNumResultCols(
     handle: ?*anyopaque,
     column_count: *usize,
@@ -189,13 +177,6 @@ pub fn SQLBindCol(
         @intCast(col.buffer.len),
         @ptrCast(&col.str_len_or_ind),
     );
-    return @enumFromInt(return_code);
-}
-
-pub fn SQLExecute(
-    handle: ?*anyopaque,
-) rc.ExecuteRC {
-    const return_code = c.SQLExecute(handle);
     return @enumFromInt(return_code);
 }
 

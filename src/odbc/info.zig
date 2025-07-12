@@ -8,6 +8,30 @@ const strToBool = mem.strToBool;
 
 const c = @import("c");
 
+pub const InfoTypeString = enum(u16) {
+    catalog_name_separator = c.SQL_CATALOG_NAME_SEPARATOR,
+    catalog_term = c.SQL_CATALOG_TERM,
+    collation_seq = c.SQL_COLLATION_SEQ,
+    data_source_name = c.SQL_DATA_SOURCE_NAME,
+    database_name = c.SQL_DATABASE_NAME,
+    dbms_name = c.SQL_DBMS_NAME,
+    dbms_ver = c.SQL_DBMS_VER,
+    driver_name = c.SQL_DRIVER_NAME,
+    driver_odbc_ver = c.SQL_DRIVER_ODBC_VER,
+    driver_ver = c.SQL_DRIVER_VER,
+    identifier_quote_char = c.SQL_IDENTIFIER_QUOTE_CHAR,
+    keywords = c.SQL_KEYWORDS,
+    odbc_ver = c.SQL_ODBC_VER,
+    owner_term = c.SQL_OWNER_TERM,
+    procedure_term = c.SQL_PROCEDURE_TERM,
+    search_pattern_escape = c.SQL_SEARCH_PATTERN_ESCAPE,
+    server_name = c.SQL_SERVER_NAME,
+    special_characters = c.SQL_SPECIAL_CHARACTERS,
+    table_term = c.SQL_TABLE_TERM,
+    user_name = c.SQL_USER_NAME,
+    xopen_cli_year = c.SQL_XOPEN_CLI_YEAR,
+};
+
 pub const InfoType = enum(c_int) {
     // ODBC spec
     accessible_procedures = c.SQL_ACCESSIBLE_PROCEDURES,

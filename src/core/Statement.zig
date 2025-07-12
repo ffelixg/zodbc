@@ -222,10 +222,14 @@ pub fn describeParam(self: Self) !void {
 }
 
 pub fn prepare(self: Self, stmt_str: []const u8) !void {
-    return switch (sql.SQLPrepare(self.handle(), stmt_str)) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => PrepareError.Error,
-        .INVALID_HANDLE => PrepareError.InvalidHandle,
+    const as_wide = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.c_allocator, stmt_str);
+    defer std.heap.c_allocator.free(as_wide);
+    return switch (c.SQLPrepareW(self.handle(), as_wide.ptr, @intCast(as_wide.len))) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.PrepareSuccessWithInfo,
+        c.SQL_ERROR => error.PrepareError,
+        c.SQL_INVALID_HANDLE => error.PrepareInvalidHandle,
+        else => unreachable,
     };
 }
 
@@ -409,12 +413,16 @@ pub fn setPos(self: Self) !void {
 }
 
 pub fn execute(self: Self) !void {
-    return switch (sql.SQLExecute(self.handle())) {
-        .SUCCESS, .SUCCESS_WITH_INFO => {},
-        .ERR => ExecuteError.Error,
-        .INVALID_HANDLE => ExecuteError.InvalidHandle,
-        .NEED_DATA => ExecuteError.NeedData,
-        .NO_DATA_FOUND => ExecuteError.NoDataFound,
+    return switch (c.SQLExecute(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.ExecuteSuccessWithInfo,
+        c.SQL_NEED_DATA => error.ExecuteNeedData,
+        c.SQL_STILL_EXECUTING => error.ExecuteStillExecuting,
+        c.SQL_ERROR => error.ExecuteError,
+        c.SQL_NO_DATA => error.ExecuteNoData,
+        c.SQL_INVALID_HANDLE => error.ExecuteInvalidHandle,
+        c.SQL_PARAM_DATA_AVAILABLE => error.ExecuteParamDataAvailable,
+        else => unreachable,
     };
 }
 
