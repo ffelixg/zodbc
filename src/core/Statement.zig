@@ -45,8 +45,8 @@ pub fn closeCursor(self: *const Self) !void {
     };
 }
 
-pub fn deinit(self: Self) void {
-    self.handler.deinit();
+pub fn deinit(self: Self) !void {
+    try self.handler.deinit();
 }
 
 pub fn handle(self: Self) ?*anyopaque {

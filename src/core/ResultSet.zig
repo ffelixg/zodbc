@@ -40,7 +40,7 @@ borrowed_row: []?[]u8,
 allocator: std.mem.Allocator,
 
 pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
-    errdefer stmt.free(.unbind) catch unreachable;
+    errdefer stmt.free(.unbind) catch {};
     const desc = try core.Descriptor.AppRowDesc.fromStatement(stmt);
     const n_cols = try stmt.numResultCols();
     var n_cols_bound: usize = n_cols;
@@ -82,7 +82,7 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
             const precision = try stmt.colAttribute(col_number, .precision);
             std.debug.assert(length == precision);
             std.debug.assert(length >= 0);
-            if (length == 0) {
+            if (length == 0 or length > 4000) {
                 n_cols_bound = @min(n_cols_bound, col_number_usize);
                 break :blk 4000;
             } else {
@@ -154,13 +154,13 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
     };
 }
 
-pub fn deinit(self: *ResultSet) void {
+pub fn deinit(self: *ResultSet) !void {
     const allocator = self.allocator;
     for (self.columns.items) |col| col.deinit(allocator);
     self.columns.deinit(allocator);
     allocator.free(self.borrowed_row);
     allocator.free(self.array_status);
-    self.stmt.free(.unbind) catch unreachable;
+    try self.stmt.free(.unbind);
 }
 
 pub fn borrowRow(res: *@This()) !?[]?[]u8 {

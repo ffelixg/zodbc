@@ -22,8 +22,8 @@ pub fn init(odbc_version: AttributeValue.OdbcVersion) !Self {
     return env;
 }
 
-pub fn deinit(self: Self) void {
-    self.handler.deinit();
+pub fn deinit(self: Self) !void {
+    try self.handler.deinit();
 }
 
 pub fn handle(self: Self) ?*anyopaque {

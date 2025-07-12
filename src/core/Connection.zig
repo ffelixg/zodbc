@@ -23,8 +23,8 @@ pub fn init(env: Environment) !Self {
     return .{ .handler = handler };
 }
 
-pub fn deinit(self: *const Self) void {
-    self.handler.deinit();
+pub fn deinit(self: *const Self) !void {
+    try self.handler.deinit();
 }
 
 pub fn handle(self: *const Self) ?*anyopaque {

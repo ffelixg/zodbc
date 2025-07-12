@@ -26,8 +26,13 @@ pub fn init(handle_type: types.HandleType, input_handle: ?*anyopaque) !Self {
     };
 }
 
-pub fn deinit(self: Self) void {
-    std.debug.assert(c.SQLFreeHandle(@intFromEnum(self.handle_type), self.handle) == c.SQL_SUCCESS);
+pub fn deinit(self: Self) !void {
+    return switch (c.SQLFreeHandle(@intFromEnum(self.handle_type), self.handle)) {
+        c.SQL_SUCCESS => {},
+        c.SQL_ERROR => error.FreeHandleError,
+        c.SQL_INVALID_HANDLE => error.FreeHandleInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn getLastError(self: Self) sql.LastError {

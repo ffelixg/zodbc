@@ -485,9 +485,15 @@ pub fn getLastError(handle_type: types.HandleType, handle: ?*anyopaque) LastErro
     //     else => return SqlStateError.GeneralError,
     // }
     std.debug.print("SQLGetDiagRec rc= {}\n", .{result});
-    const message_text = std.unicode.wtf16LeToWtf8Alloc(std.heap.smp_allocator, &message_text_16) catch unreachable;
+    const message_text = std.unicode.wtf16LeToWtf8Alloc(
+        std.heap.smp_allocator,
+        &message_text_16,
+    ) catch |err| @errorName(err);
     defer std.heap.smp_allocator.free(message_text);
-    const sql_state = std.unicode.wtf16LeToWtf8Alloc(std.heap.smp_allocator, &sql_state_16) catch unreachable;
+    const sql_state = std.unicode.wtf16LeToWtf8Alloc(
+        std.heap.smp_allocator,
+        &sql_state_16,
+    ) catch |err| @errorName(err);
     defer std.heap.smp_allocator.free(sql_state);
     std.debug.print("message_text = {s}\n", .{message_text});
     if (result == 0 or result == 1) {
