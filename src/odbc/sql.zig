@@ -466,39 +466,97 @@ pub const odbc_error_map = std.StaticStringMap(SqlState).initComptime(.{
 
 pub const LastError = error{NoError} || SqlStateError;
 pub fn getLastError(handle_type: types.HandleType, handle: ?*anyopaque) LastError {
-    var num_records: u64 = 0;
-    _ = c.SQLGetDiagFieldW(@intFromEnum(handle_type), handle, 0, @intFromEnum(DiagnosticIdentifier.Number), &num_records, 0, null);
-
-    if (num_records == 0) return error.NoError;
-
-    var sql_state_16: [5:0]u16 = undefined;
-    // var native_error: [1024:0]u8 = undefined;
-    var message_text_16: [1024:0]u16 = undefined;
-
-    const result = c.SQLGetDiagRecW(@intFromEnum(handle_type), handle, 1, sql_state_16[0..], null, message_text_16[0..], 1024, null);
-    // switch (@as(odbc.SqlReturn, @enumFromInt(result))) {
-    //     .success, .success_with_info => {
-    //         const error_state = odbc_error_map.get(sql_state[0..]) orelse .GeneralError;
-    //         return error_state.toError();
-    //     },
-    //     // else => return null,
-    //     else => return SqlStateError.GeneralError,
-    // }
-    std.debug.print("SQLGetDiagRec rc= {}\n", .{result});
-    const message_text = std.unicode.wtf16LeToWtf8Alloc(
+    const records = DiagRecs.init(
+        handle_type,
+        handle,
         std.heap.smp_allocator,
-        &message_text_16,
-    ) catch |err| @errorName(err);
-    defer std.heap.smp_allocator.free(message_text);
-    const sql_state = std.unicode.wtf16LeToWtf8Alloc(
-        std.heap.smp_allocator,
-        &sql_state_16,
-    ) catch |err| @errorName(err);
-    defer std.heap.smp_allocator.free(sql_state);
-    std.debug.print("message_text = {s}\n", .{message_text});
-    if (result == 0 or result == 1) {
-        const error_state = odbc_error_map.get(sql_state[0..]) orelse .GeneralError;
-        return error_state.toError();
+    ) catch return SqlStateError.GeneralError;
+    defer records.deinit(std.heap.smp_allocator);
+    if (records.items.len == 0) {
+        return error.NoError;
     }
-    return SqlStateError.GeneralError;
+    std.debug.print("message_text = {s}\n", .{records.items[0].message});
+    return records.items[0].err orelse SqlStateError.GeneralError;
 }
+
+pub const DiagRec = struct {
+    message: []const u8,
+    native_error: i32,
+    sql_state: [5]u8,
+    err: ?SqlStateError,
+};
+pub const DiagRecs = struct {
+    items: []const DiagRec,
+
+    pub fn init(handle_type: types.HandleType, handle: ?*anyopaque, allocator: std.mem.Allocator) !@This() {
+        var n_recs: u64 = 0;
+        switch (c.SQLGetDiagFieldW(
+            @intFromEnum(handle_type),
+            handle,
+            0,
+            @intFromEnum(DiagnosticIdentifier.Number),
+            &n_recs,
+            0,
+            null,
+        )) {
+            c.SQL_SUCCESS => {},
+            c.SQL_SUCCESS_WITH_INFO => return error.GetDiagFieldSuccessWithInfo,
+            c.SQL_ERROR => return error.GetDiagFieldError,
+            c.SQL_NO_DATA => return error.GetDiagFieldNoData,
+            c.SQL_INVALID_HANDLE => return error.GetDiagFieldInvalidHandle,
+            else => unreachable,
+        }
+        const items = try allocator.alloc(DiagRec, n_recs);
+        errdefer allocator.free(items);
+        var recs_list: std.ArrayListUnmanaged(DiagRec) = .{ .items = items[0..0], .capacity = items.len };
+        errdefer for (recs_list.items) |rec| allocator.free(rec.message);
+
+        for (0..n_recs) |i_rec| {
+            var sql_state_16: [5:0]u16 = undefined;
+            var native_error: i32 = 0;
+            var message_text_16: [1024:0]u16 = undefined;
+            var len_message: i16 = 0;
+
+            switch (c.SQLGetDiagRecW(
+                @intFromEnum(handle_type),
+                handle,
+                @intCast(i_rec + 1),
+                sql_state_16[0..],
+                &native_error,
+                message_text_16[0..],
+                message_text_16.len,
+                &len_message,
+            )) {
+                c.SQL_SUCCESS => {},
+                c.SQL_SUCCESS_WITH_INFO => return error.GetDiagRecSuccessWithInfo,
+                c.SQL_ERROR => return error.GetDiagRecError,
+                c.SQL_NO_DATA => return error.GetDiagRecNoData,
+                c.SQL_INVALID_HANDLE => return error.GetDiagRecInvalidHandle,
+                else => unreachable,
+            }
+
+            const message_text = try std.unicode.wtf16LeToWtf8Alloc(
+                allocator,
+                message_text_16[0..@intCast(len_message)],
+            );
+            errdefer allocator.free(message_text);
+            var sql_state = std.mem.zeroes([5]u8);
+            std.debug.assert(std.unicode.wtf16LeToWtf8(&sql_state, sql_state_16[0..]) == 5);
+            const error_state = odbc_error_map.get(sql_state[0..]);
+
+            recs_list.appendAssumeCapacity(.{
+                .err = if (error_state) |err| err.toError() else null,
+                .message = message_text,
+                .sql_state = sql_state,
+                .native_error = native_error,
+            });
+        }
+
+        return .{ .items = items };
+    }
+
+    pub fn deinit(self: @This(), allocator: std.mem.Allocator) void {
+        for (self.items) |rec| allocator.free(rec.message);
+        allocator.free(self.items);
+    }
+};
