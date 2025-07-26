@@ -8,6 +8,8 @@ const RowStatus = odbc.attributes.RowStatus;
 
 const ResultSet = @This();
 
+const Branch = enum { variable, fixed, begin };
+
 const Column = struct {
     c_type: CDataType,
     buf_indicator: []i64,
@@ -19,6 +21,7 @@ const Column = struct {
             scale: i7,
         },
     } = null,
+    branch: Branch,
 
     const TypeSpecific = enum { decimal };
 
@@ -132,6 +135,10 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
             .buf_value = col_odbc_buffer,
             .value_size = c_type.len * c_type.format.sizeOf(),
             .type_specific = type_specific,
+            .branch = switch (c_type.format) {
+                .char, .binary, .wchar => Branch.variable,
+                else => Branch.fixed,
+            },
         });
     }
     const array_status = try allocator.alloc(RowStatus, odbc_buf_rows * 1000);
@@ -139,6 +146,7 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
     try stmt.setStmtAttr(.row_bind_type, 0);
     try stmt.setStmtAttr(.row_status_ptr, array_status.ptr);
     try stmt.setStmtAttr(.row_array_size, odbc_buf_rows);
+
     return .{
         .stmt = stmt,
         .desc = desc,
@@ -175,24 +183,39 @@ pub fn borrowRow(res: *@This()) !?[]?[]u8 {
         if (res.n_cols_bound != res.n_cols) {
             std.debug.assert(res.n_cols_bound < res.n_cols);
             std.debug.assert(res.odbc_buf_rows == 1);
-            for (res.n_cols_bound..res.n_cols) |i_col| {
-                const col = &res.columns.items[i_col];
 
-                switch (col.c_type) {
-                    .char, .binary, .wchar => try res.stmt.getDataVar(
+            var i_col: usize = res.n_cols_bound;
+            var col: *Column = undefined;
+            sw: switch (Branch.begin) {
+                .begin => {
+                    if (i_col >= res.n_cols) {
+                        @branchHint(.unlikely);
+                        break :sw;
+                    }
+                    col = &res.columns.items[i_col];
+                    continue :sw col.branch;
+                },
+                .variable => {
+                    try res.stmt.getDataVar(
                         @intCast(i_col + 1),
                         col.c_type,
                         &col.buf_value,
                         &col.buf_indicator[0],
                         res.allocator,
-                    ),
-                    else => try res.stmt.getData(
+                    );
+                    i_col += 1;
+                    continue :sw .begin;
+                },
+                .fixed => {
+                    try res.stmt.getData(
                         @intCast(i_col + 1),
                         .ard_type,
                         col.buf_value,
                         &col.buf_indicator[0],
-                    ),
-                }
+                    );
+                    i_col += 1;
+                    continue :sw .begin;
+                },
             }
             res.array_status[0] = .success;
         }
@@ -206,20 +229,37 @@ pub fn borrowRow(res: *@This()) !?[]?[]u8 {
         else => unreachable,
     }
 
-    for (res.borrowed_row, res.columns.items) |*borrowed_row, col| {
-        const indicator = col.buf_indicator[res.next_row];
-        if (indicator == c.SQL_NULL_DATA) {
-            borrowed_row.* = null;
-            continue;
-        }
-        std.debug.assert(indicator >= 0);
-        const cell_size = @divExact(col.buf_value.len, res.odbc_buf_rows);
-        switch (col.c_type) {
-            .char, .binary, .wchar => {
-                borrowed_row.* = col.buf_value[res.next_row * cell_size .. res.next_row * cell_size + @as(usize, @intCast(indicator))];
+    {
+        var i_col: usize = 0;
+        var col: *Column = undefined;
+        var indicator: i64 = 0;
+        var cell_size: usize = 0;
+        sw: switch (Branch.begin) {
+            .begin => {
+                if (i_col >= res.n_cols) {
+                    @branchHint(.unlikely);
+                    break :sw;
+                }
+                col = &res.columns.items[i_col];
+                indicator = col.buf_indicator[res.next_row];
+                if (indicator == c.SQL_NULL_DATA) {
+                    res.borrowed_row[i_col] = null;
+                    i_col += 1;
+                    continue :sw .begin;
+                }
+                std.debug.assert(indicator >= 0);
+                cell_size = @divExact(col.buf_value.len, res.odbc_buf_rows);
+                continue :sw col.branch;
             },
-            else => {
-                borrowed_row.* = col.buf_value[res.next_row * cell_size .. (res.next_row + 1) * cell_size];
+            .variable => {
+                res.borrowed_row[i_col] = col.buf_value[res.next_row * cell_size .. res.next_row * cell_size + @as(usize, @intCast(indicator))];
+                i_col += 1;
+                continue :sw .begin;
+            },
+            .fixed => {
+                res.borrowed_row[i_col] = col.buf_value[res.next_row * cell_size .. (res.next_row + 1) * cell_size];
+                i_col += 1;
+                continue :sw .begin;
             },
         }
     }
