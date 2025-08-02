@@ -13,7 +13,7 @@ const AttributeValue = attrs.EnvironmentAttributeValue;
 
 test "getEnvAttr/3 can retrieve the current item values" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     var odbc_buf: [256]u8 = undefined;
 
@@ -68,7 +68,7 @@ test "getEnvAttr/3 can retrieve the current item values" {
 
 test "getEnvAttr/3 returns an error for unsupported items" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     var odbc_buf: [256]u8 = undefined;
 

@@ -13,8 +13,8 @@ const AttributeValue = attrs.ConnectionAttributeValue;
 test ".setConnectAttr/1 can modify disconnected items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
 
@@ -42,8 +42,8 @@ test ".setConnectAttr/1 can modify disconnected items" {
 test ".setConnectAttr/1 can modify connected items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
@@ -161,8 +161,8 @@ test ".setConnectAttr/1 can modify connected items" {
 test ".setConnectAttr/1 can modify disconnected Db2 specific items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
 
@@ -181,8 +181,8 @@ test ".setConnectAttr/1 can modify disconnected Db2 specific items" {
 test "setConnectAttr/1 returns an error when item is immutable" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
     const con_str = try zodbc.testing.db2ConnectionString(allocator);

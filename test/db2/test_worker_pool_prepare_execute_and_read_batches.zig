@@ -7,7 +7,7 @@ const odbc = zodbc.odbc;
 
 test "can execute a prepared statement and fetch a cursor" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     var pool = try zodbc.WorkerPool.init(
         allocator,

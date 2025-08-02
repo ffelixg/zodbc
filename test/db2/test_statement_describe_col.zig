@@ -12,15 +12,15 @@ const types = zodbc.odbc.types;
 test "describeCol/2 returns the column descriptions of a prepared statement" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
     defer allocator.free(con_str);
     try env_con.con.connectWithString(con_str);
 
     const stmt = try zodbc.Statement.init(env_con.con);
-    defer stmt.deinit();
+    defer stmt.deinit() catch unreachable;
     try stmt.prepare("SELECT * FROM SYSIBM.SYSTABLES");
 
     var col_desc = try types.ColDescription.init(allocator);
@@ -41,15 +41,15 @@ test "describeCol/2 returns the column descriptions of a prepared statement" {
 test "describeCol/2 returns an error when called on the bookmark column index 0" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
     defer allocator.free(con_str);
     try env_con.con.connectWithString(con_str);
 
     const stmt = try zodbc.Statement.init(env_con.con);
-    defer stmt.deinit();
+    defer stmt.deinit() catch unreachable;
 
     var col_desc = try types.ColDescription.init(allocator);
     defer col_desc.deinit();
@@ -63,15 +63,15 @@ test "describeCol/2 returns an error when called on the bookmark column index 0"
 test "describeCol/2 returns an error when called out of sequence order" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
     defer allocator.free(con_str);
     try env_con.con.connectWithString(con_str);
 
     const stmt = try zodbc.Statement.init(env_con.con);
-    defer stmt.deinit();
+    defer stmt.deinit() catch unreachable;
 
     var col_desc = try types.ColDescription.init(allocator);
     defer col_desc.deinit();

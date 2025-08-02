@@ -13,8 +13,8 @@ const AttributeValue = attrs.ConnectionAttributeValue;
 test "getConnectAttr/3 can retrieve the current item values for disconnected connections" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
 
@@ -56,8 +56,8 @@ test "getConnectAttr/3 can retrieve the current item values for disconnected con
 test "getConnectAttr/3 can retrieve connected items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
@@ -161,8 +161,8 @@ test "getConnectAttr/3 can retrieve connected items" {
 test "getConnectAttr/3 can retrieve Db2 specific items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
     const con_str = try zodbc.testing.db2ConnectionString(allocator);
@@ -183,8 +183,8 @@ test "getConnectAttr/3 can retrieve Db2 specific items" {
 test "getConnectAttr/3 returns a not implemented error for unsupported items" {
     const env_con = try zodbc.testing.connection();
     defer {
-        env_con.con.deinit();
-        env_con.env.deinit();
+        env_con.con.deinit() catch unreachable;
+        env_con.env.deinit() catch unreachable;
     }
     const con = env_con.con;
     const con_str = try zodbc.testing.db2ConnectionString(allocator);

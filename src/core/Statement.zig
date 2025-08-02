@@ -589,9 +589,9 @@ pub const FetchScrollError = error{
 
 test ".init/1 returns an error when called without an established connection" {
     const env = try Environment.init(.v3);
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
     const con = try Connection.init(env);
-    defer con.deinit();
+    defer con.deinit() catch unreachable;
 
     try testing.expectError(
         err.AllocError.Error,

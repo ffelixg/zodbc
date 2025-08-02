@@ -12,7 +12,7 @@ const AttributeValue = attrs.EnvironmentAttributeValue;
 
 test "setEnvAttr/1 can modify items that will be shared among connections" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     var odbc_buf: [256]u8 = undefined;
 
@@ -46,7 +46,7 @@ test "setEnvAttr/1 can modify items that will be shared among connections" {
 
 test "setEnvAttr/1 returns an error for unixODBC items" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     try expectError(
         err.SetEnvAttrError.Error,
@@ -73,7 +73,7 @@ test "setEnvAttr/1 returns an error for unixODBC items" {
 // - https://www.ibm.com/docs/en/db2-for-zos/11?topic=functions-sqlsetenvattr-set-environment-attributes
 test "setEnvAttr/1 returns an error when null terminated output is false" {
     const env = try zodbc.testing.environment();
-    defer env.deinit();
+    defer env.deinit() catch unreachable;
 
     var odbc_buf: [256]u8 = undefined;
 

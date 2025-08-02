@@ -43,8 +43,8 @@ pub fn deinit(self: Self) void {
     for (self.workers.items) |*w| w.join();
     self.workers.deinit();
     self.mailbox.deinit();
-    self.stmt.deinit();
-    self.conn.deinit();
+    self.stmt.deinit() catch unreachable;
+    self.conn.deinit() catch unreachable;
 }
 
 pub fn connectWithString(self: *Self, dsn: []const u8) !void {
