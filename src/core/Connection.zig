@@ -35,28 +35,40 @@ pub fn getLastError(self: *const Self) sql.LastError {
     return self.handler.getLastError();
 }
 
+pub fn getInfoComptime(
+    self: Self,
+    comptime info_type: InfoType,
+) !@FieldType(InfoTypeValue, @tagName(info_type)) {
+    const info_val = try self.getInfo(info_type);
+    return @field(info_val, @tagName(info_type));
+}
+
 pub fn getInfo(
     self: Self,
-    allocator: std.mem.Allocator,
     info_type: InfoType,
-    odbc_buf: []u8,
 ) !InfoTypeValue {
-    var str_len: i16 = undefined;
+    var str_len: i16 = 0;
+    var odbc_buf: [4]u8 = undefined;
 
-    return switch (sql.SQLGetInfo(
+    comptime {
+        var biggest_field = 0;
+        for (@typeInfo(InfoTypeValue).@"union".fields) |field| {
+            biggest_field = @max(biggest_field, @sizeOf(field.type));
+        }
+        std.debug.assert(biggest_field == @sizeOf(@TypeOf(odbc_buf)));
+    }
+
+    return switch (c.SQLGetInfo(
         self.handle(),
-        info_type,
-        odbc_buf.ptr,
+        @intFromEnum(info_type),
+        @ptrCast(&odbc_buf),
         @intCast(odbc_buf.len),
         &str_len,
     )) {
-        .SUCCESS, .SUCCESS_WITH_INFO => InfoTypeValue.init(allocator, info_type, odbc_buf, str_len),
-        .ERR => {
-            const lastError = self.getLastError();
-            std.debug.print("lastError: {}\n", .{lastError});
-            return GetInfoError.Error;
-        },
-        .INVALID_HANDLE => GetInfoError.InvalidHandle,
+        c.SQL_SUCCESS, c.SQL_SUCCESS_WITH_INFO => InfoTypeValue.init(info_type, odbc_buf[0..], str_len),
+        c.SQL_ERROR => error.GetInfoError,
+        c.SQL_INVALID_HANDLE => return error.GetInfoInvalidHandle,
+        else => unreachable,
     };
 }
 

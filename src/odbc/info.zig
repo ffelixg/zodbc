@@ -32,7 +32,7 @@ pub const InfoTypeString = enum(u16) {
     xopen_cli_year = c.SQL_XOPEN_CLI_YEAR,
 };
 
-pub const InfoType = enum(c_int) {
+pub const InfoType = enum(u16) {
     // ODBC spec
     accessible_procedures = c.SQL_ACCESSIBLE_PROCEDURES,
     accessible_tables = c.SQL_ACCESSIBLE_TABLES,
@@ -45,10 +45,7 @@ pub const InfoType = enum(c_int) {
     bookmark_persistence = c.SQL_BOOKMARK_PERSISTENCE,
     catalog_location = c.SQL_CATALOG_LOCATION,
     catalog_name = c.SQL_CATALOG_NAME,
-    catalog_name_separator = c.SQL_CATALOG_NAME_SEPARATOR,
-    catalog_term = c.SQL_CATALOG_TERM,
     catalog_usage = c.SQL_CATALOG_USAGE,
-    collation_seq = c.SQL_COLLATION_SEQ,
     column_alias = c.SQL_COLUMN_ALIAS,
     concat_null_behavior = c.SQL_CONCAT_NULL_BEHAVIOR,
     convert_bigint = c.SQL_CONVERT_BIGINT,
@@ -84,11 +81,7 @@ pub const InfoType = enum(c_int) {
     cursor_commit_behavior = c.SQL_CURSOR_COMMIT_BEHAVIOR,
     cursor_rollback_behavior = c.SQL_CURSOR_ROLLBACK_BEHAVIOR,
     cursor_sensitivity = c.SQL_CURSOR_SENSITIVITY,
-    data_source_name = c.SQL_DATA_SOURCE_NAME,
     data_source_read_only = c.SQL_DATA_SOURCE_READ_ONLY,
-    database_name = c.SQL_DATABASE_NAME,
-    dbms_name = c.SQL_DBMS_NAME,
-    dbms_ver = c.SQL_DBMS_VER,
     ddl_index = c.SQL_DDL_INDEX,
     default_txn_isolation = c.SQL_DEFAULT_TXN_ISOLATION,
     describe_parameter = c.SQL_DESCRIBE_PARAMETER,
@@ -96,9 +89,6 @@ pub const InfoType = enum(c_int) {
     driver_henv = c.SQL_DRIVER_HENV,
     driver_hlib = c.SQL_DRIVER_HLIB,
     driver_hstmt = c.SQL_DRIVER_HSTMT,
-    driver_name = c.SQL_DRIVER_NAME,
-    driver_odbc_ver = c.SQL_DRIVER_ODBC_VER,
-    driver_ver = c.SQL_DRIVER_VER,
     drop_assertion = c.SQL_DROP_ASSERTION,
     drop_character_set = c.SQL_DROP_CHARACTER_SET,
     drop_collation = c.SQL_DROP_COLLATION,
@@ -117,13 +107,11 @@ pub const InfoType = enum(c_int) {
     getdata_extensions = c.SQL_GETDATA_EXTENSIONS,
     group_by = c.SQL_GROUP_BY,
     identifier_case = c.SQL_IDENTIFIER_CASE,
-    identifier_quote_char = c.SQL_IDENTIFIER_QUOTE_CHAR,
     info_schema_views = c.SQL_INFO_SCHEMA_VIEWS,
     insert_statement = c.SQL_INSERT_STATEMENT,
     integrity = c.SQL_INTEGRITY,
     keyset_cursor_attributes1 = c.SQL_KEYSET_CURSOR_ATTRIBUTES1,
     keyset_cursor_attributes2 = c.SQL_KEYSET_CURSOR_ATTRIBUTES2,
-    keywords = c.SQL_KEYWORDS,
     like_escape_clause = c.SQL_LIKE_ESCAPE_CLAUSE,
     lock_types = c.SQL_LOCK_TYPES,
     max_async_concurrent_statements = c.SQL_MAX_ASYNC_CONCURRENT_STATEMENTS,
@@ -158,25 +146,19 @@ pub const InfoType = enum(c_int) {
     odbc_api_conformance = c.SQL_ODBC_API_CONFORMANCE,
     odbc_sag_cli_conformance = c.SQL_ODBC_SAG_CLI_CONFORMANCE,
     odbc_sql_conformance = c.SQL_ODBC_SQL_CONFORMANCE,
-    odbc_ver = c.SQL_ODBC_VER,
     oj_capabilities = c.SQL_OJ_CAPABILITIES,
     order_by_columns_in_select = c.SQL_ORDER_BY_COLUMNS_IN_SELECT,
     outer_joins = c.SQL_OUTER_JOINS,
-    owner_term = c.SQL_OWNER_TERM,
     param_array_row_counts = c.SQL_PARAM_ARRAY_ROW_COUNTS,
     param_array_selects = c.SQL_PARAM_ARRAY_SELECTS,
     pos_operations = c.SQL_POS_OPERATIONS,
     positioned_statements = c.SQL_POSITIONED_STATEMENTS,
-    procedure_term = c.SQL_PROCEDURE_TERM,
     procedures = c.SQL_PROCEDURES,
     quoted_identifier_case = c.SQL_QUOTED_IDENTIFIER_CASE,
     row_updates = c.SQL_ROW_UPDATES,
     schema_usage = c.SQL_SCHEMA_USAGE,
     scroll_concurrency = c.SQL_SCROLL_CONCURRENCY,
     scroll_options = c.SQL_SCROLL_OPTIONS,
-    search_pattern_escape = c.SQL_SEARCH_PATTERN_ESCAPE,
-    server_name = c.SQL_SERVER_NAME,
-    special_characters = c.SQL_SPECIAL_CHARACTERS,
     sql92_predicates = c.SQL_SQL92_PREDICATES,
     sql92_value_expressions = c.SQL_SQL92_VALUE_EXPRESSIONS,
     static_cursor_attributes1 = c.SQL_STATIC_CURSOR_ATTRIBUTES1,
@@ -185,15 +167,12 @@ pub const InfoType = enum(c_int) {
     string_functions = c.SQL_STRING_FUNCTIONS,
     subqueries = c.SQL_SUBQUERIES,
     system_functions = c.SQL_SYSTEM_FUNCTIONS,
-    table_term = c.SQL_TABLE_TERM,
     timedate_add_intervals = c.SQL_TIMEDATE_ADD_INTERVALS,
     timedate_diff_intervals = c.SQL_TIMEDATE_DIFF_INTERVALS,
     timedate_functions = c.SQL_TIMEDATE_FUNCTIONS,
     txn_capable = c.SQL_TXN_CAPABLE,
     txn_isolation_option = c.SQL_TXN_ISOLATION_OPTION,
     @"union" = c.SQL_UNION,
-    user_name = c.SQL_USER_NAME,
-    xopen_cli_year = c.SQL_XOPEN_CLI_YEAR,
     // IBM Db2 specific info types
     // ascii_gccsid = c.SQL_ASCII_GCCSID,
     // ascii_mccsid = c.SQL_ASCII_MCCSID,
@@ -212,95 +191,83 @@ pub const InfoTypeValue = union(InfoType) {
     accessible_procedures: bool,
     accessible_tables: bool,
     active_environments: u16,
-    aggregate_functions: AggregateFunctionsMask,
-    alter_domain: AlterDomainMask,
-    alter_table: AlterTableMask,
-    batch_row_count: BatchRowCountMask,
-    batch_support: BatchSupportMask,
-    bookmark_persistence: BookmarkPersistenceMask,
+    aggregate_functions: u32,
+    alter_domain: u32,
+    alter_table: u32,
+    batch_row_count: u32,
+    batch_support: u32,
+    bookmark_persistence: u32,
     catalog_location: u16,
     catalog_name: bool,
-    catalog_name_separator: []const u8,
-    catalog_term: []const u8,
-    catalog_usage: CatalogUsageMask,
-    collation_seq: []const u8,
+    catalog_usage: u32,
     column_alias: bool,
     concat_null_behavior: ConcatNullBehavior,
-    convert_bigint: ConvertBigintMask,
-    convert_binary: ConvertBinaryMask,
-    convert_bit: ConvertBitMask,
-    convert_char: ConvertCharMask,
-    convert_date: ConvertDateMask,
-    convert_decimal: ConvertDecimalMask,
-    convert_double: ConvertDoubleMask,
-    convert_float: ConvertFloatMask,
-    convert_integer: ConvertIntegerMask,
-    convert_interval_day_time: ConvertIntervalDayTimeMask,
-    convert_interval_year_month: ConvertIntervalYearMonthMask,
-    convert_longvarbinary: ConvertLongvarbinaryMask,
-    convert_longvarchar: ConvertLongvarcharMask,
-    convert_numeric: ConvertNumericMask,
-    convert_real: ConvertRealMask,
-    convert_smallint: ConvertSmallintMask,
-    convert_time: ConvertTimeMask,
-    convert_timestamp: ConvertTimestampMask,
-    convert_tinyint: ConvertTinyintMask,
-    convert_varbinary: ConvertVarbinaryMask,
-    convert_varchar: ConvertVarcharMask,
-    convert_functions: ConvertFunctionsMask,
+    convert_bigint: u32,
+    convert_binary: u32,
+    convert_bit: u32,
+    convert_char: u32,
+    convert_date: u32,
+    convert_decimal: u32,
+    convert_double: u32,
+    convert_float: u32,
+    convert_integer: u32,
+    convert_interval_day_time: u32,
+    convert_interval_year_month: u32,
+    convert_longvarbinary: u32,
+    convert_longvarchar: u32,
+    convert_numeric: u32,
+    convert_real: u32,
+    convert_smallint: u32,
+    convert_time: u32,
+    convert_timestamp: u32,
+    convert_tinyint: u32,
+    convert_varbinary: u32,
+    convert_varchar: u32,
+    convert_functions: u32,
     correlation_name: CorrelationName,
-    create_assertion: CreateAssertionMask,
-    create_character_set: CreateCharacterSetMask,
-    create_collation: CreateCollationMask,
-    create_domain: CreateDomainMask,
-    create_schema: CreateSchemaMask,
-    create_table: CreateTableMask,
-    create_translation: CreateTranslationMask,
+    create_assertion: u32,
+    create_character_set: u32,
+    create_collation: u32,
+    create_domain: u32,
+    create_schema: u32,
+    create_table: u32,
+    create_translation: u32,
     cursor_commit_behavior: CursorBehavior,
     cursor_rollback_behavior: CursorBehavior,
     cursor_sensitivity: CursorSensitivity,
-    data_source_name: []const u8,
     data_source_read_only: bool,
-    database_name: []const u8,
-    dbms_name: []const u8,
-    dbms_ver: []const u8,
-    ddl_index: DdlIndexMask,
-    default_txn_isolation: DefaultTxnIsolationMask,
+    ddl_index: u32,
+    default_txn_isolation: u32,
     describe_parameter: bool,
     driver_hdbc: u32,
     driver_henv: u32,
     driver_hlib: u32,
     driver_hstmt: u32,
-    driver_name: []const u8,
-    driver_odbc_ver: []const u8,
-    driver_ver: []const u8,
-    drop_assertion: DropAssertionMask,
-    drop_character_set: DropCharacterSetMask,
-    drop_collation: DropCollationMask,
-    drop_domain: DropDomainMask,
-    drop_schema: DropSchemaMask,
-    drop_table: DropTableMask,
-    drop_translation: DropTranslationMask,
-    drop_view: DropViewMask,
-    dynamic_cursor_attributes1: DynamicCursorAttributes1Mask,
-    dynamic_cursor_attributes2: DynamicCursorAttributes2Mask,
+    drop_assertion: u32,
+    drop_character_set: u32,
+    drop_collation: u32,
+    drop_domain: u32,
+    drop_schema: u32,
+    drop_table: u32,
+    drop_translation: u32,
+    drop_view: u32,
+    dynamic_cursor_attributes1: u32,
+    dynamic_cursor_attributes2: u32,
     expressions_in_orderby: bool,
-    fetch_direction: FetchDirectionMask,
+    fetch_direction: u32,
     file_usage: u16,
-    forward_only_cursor_attributes1: ForwardOnlyCursorAttributes1Mask,
-    forward_only_cursor_attributes2: ForwardOnlyCursorAttributes2Mask,
-    getdata_extensions: GetdataExtensionsMask,
+    forward_only_cursor_attributes1: u32,
+    forward_only_cursor_attributes2: u32,
+    getdata_extensions: u32,
     group_by: GroupBy,
     identifier_case: IdentifierCase,
-    identifier_quote_char: []const u8,
-    info_schema_views: InfoSchemaViewsMask,
-    insert_statement: InsertStatementMask,
+    info_schema_views: u32,
+    insert_statement: u32,
     integrity: bool,
-    keyset_cursor_attributes1: KeysetCursorAttributes1Mask,
-    keyset_cursor_attributes2: KeysetCursorAttributes2Mask,
-    keywords: []const u8,
+    keyset_cursor_attributes1: u32,
+    keyset_cursor_attributes2: u32,
     like_escape_clause: bool,
-    lock_types: LockTypesMask,
+    lock_types: u32,
     max_async_concurrent_statements: u32,
     max_binary_literal_len: u32,
     max_catalog_name_len: u16,
@@ -329,46 +296,37 @@ pub const InfoTypeValue = union(InfoType) {
     need_long_data_len: bool,
     non_nullable_columns: NonNullableColumns,
     null_collation: NullCollation,
-    numeric_functions: NumericFunctionsMask,
+    numeric_functions: u32,
     odbc_api_conformance: OdbcApiConformance,
     odbc_sag_cli_conformance: OdbcSagCliConformance,
     odbc_sql_conformance: OdbcSqlConformance,
-    odbc_ver: []const u8,
-    oj_capabilities: OjCapabilitiesMask,
+    oj_capabilities: u32,
     order_by_columns_in_select: bool,
     outer_joins: bool,
-    owner_term: []const u8,
     param_array_row_counts: ParamArrayRowCounts,
     param_array_selects: ParamArraySelects,
-    pos_operations: PosOperationsMask,
-    positioned_statements: PositionedStatementsMask,
-    procedure_term: []const u8,
+    pos_operations: u32,
+    positioned_statements: u32,
     procedures: bool,
     quoted_identifier_case: QuotedIdentifierCase,
     row_updates: bool,
-    schema_usage: SchemaUsageMask,
-    scroll_concurrency: ScrollConcurrencyMask,
-    scroll_options: ScrollOptionsMask,
-    search_pattern_escape: []const u8,
-    server_name: []const u8,
-    special_characters: []const u8,
-    sql92_predicates: Sql92PredicatesMask,
-    sql92_value_expressions: Sql92ValueExpressionsMask,
-    static_cursor_attributes1: StaticCursorAttributes1Mask,
-    static_cursor_attributes2: StaticCursorAttributes2Mask,
-    static_sensitivity: StaticSensitivityMask,
-    string_functions: StringFunctionsMask,
-    subqueries: SubqueriesMask,
-    system_functions: SystemFunctionsMask,
-    table_term: []const u8,
-    timedate_add_intervals: TimedateAddIntervalsMask,
-    timedate_diff_intervals: TimedateDiffIntervalsMask,
-    timedate_functions: TimedateFunctionsMask,
+    schema_usage: u32,
+    scroll_concurrency: u32,
+    scroll_options: u32,
+    sql92_predicates: u32,
+    sql92_value_expressions: u32,
+    static_cursor_attributes1: u32,
+    static_cursor_attributes2: u32,
+    static_sensitivity: u32,
+    string_functions: u32,
+    subqueries: u32,
+    system_functions: u32,
+    timedate_add_intervals: u32,
+    timedate_diff_intervals: u32,
+    timedate_functions: u32,
     txn_capable: TxnCapable,
-    txn_isolation_option: TxnIsolationOptionMask,
-    @"union": UnionMask,
-    user_name: []const u8,
-    xopen_cli_year: []const u8,
+    txn_isolation_option: u32,
+    @"union": u32,
     // IBM Db2 specific info types
     // AsciiGccsid: [buf_len]u8,
     // AsciiMccsid: [buf_len]u8,
@@ -383,7 +341,6 @@ pub const InfoTypeValue = union(InfoType) {
     // UnicodeSccsid: [buf_len]u8,
 
     pub fn init(
-        allocator: std.mem.Allocator,
         info_type: InfoType,
         odbc_buf: []u8,
         str_len: i16,
@@ -392,143 +349,83 @@ pub const InfoTypeValue = union(InfoType) {
             .accessible_procedures => .{ .accessible_procedures = strToBool(odbc_buf, str_len, "Y") },
             .accessible_tables => .{ .accessible_tables = strToBool(odbc_buf, str_len, "Y") },
             .active_environments => .{ .active_environments = readInt(u16, odbc_buf) },
-            .aggregate_functions => .{ .aggregate_functions = .{ .data = readInt(u32, odbc_buf) } },
-            .alter_domain => .{ .alter_domain = .{ .data = readInt(u32, odbc_buf) } },
-            .alter_table => .{ .alter_table = .{ .data = readInt(u32, odbc_buf) } },
-            .batch_row_count => .{ .batch_row_count = .{ .data = readInt(u32, odbc_buf) } },
-            .batch_support => .{ .batch_support = .{ .data = readInt(u32, odbc_buf) } },
-            .bookmark_persistence => .{ .bookmark_persistence = .{ .data = readInt(u32, odbc_buf) } },
+            .aggregate_functions => .{ .aggregate_functions = readInt(u32, odbc_buf) },
+            .alter_domain => .{ .alter_domain = readInt(u32, odbc_buf) },
+            .alter_table => .{ .alter_table = readInt(u32, odbc_buf) },
+            .batch_row_count => .{ .batch_row_count = readInt(u32, odbc_buf) },
+            .batch_support => .{ .batch_support = readInt(u32, odbc_buf) },
+            .bookmark_persistence => .{ .bookmark_persistence = readInt(u32, odbc_buf) },
             .catalog_location => .{ .catalog_location = readInt(u16, odbc_buf) },
             .catalog_name => .{ .catalog_name = strToBool(odbc_buf, str_len, "Y") },
-            .catalog_name_separator => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .catalog_name_separator = str[0..] };
-            },
-            .catalog_term => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .catalog_term = str[0..] };
-            },
-            .catalog_usage => .{ .catalog_usage = .{ .data = readInt(u32, odbc_buf) } },
-            .collation_seq => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .collation_seq = str[0..] };
-            },
+            .catalog_usage => .{ .catalog_usage = readInt(u32, odbc_buf) },
             .column_alias => .{ .column_alias = strToBool(odbc_buf, str_len, "Y") },
             .concat_null_behavior => .{ .concat_null_behavior = @enumFromInt(readInt(u16, odbc_buf)) },
-            .convert_bigint => .{ .convert_bigint = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_binary => .{ .convert_binary = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_bit => .{ .convert_bit = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_char => .{ .convert_char = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_date => .{ .convert_date = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_decimal => .{ .convert_decimal = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_double => .{ .convert_double = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_float => .{ .convert_float = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_integer => .{ .convert_integer = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_interval_day_time => .{ .convert_interval_day_time = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_interval_year_month => .{ .convert_interval_year_month = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_longvarbinary => .{ .convert_longvarbinary = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_longvarchar => .{ .convert_longvarchar = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_numeric => .{ .convert_numeric = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_real => .{ .convert_real = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_smallint => .{ .convert_smallint = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_time => .{ .convert_time = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_timestamp => .{ .convert_timestamp = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_tinyint => .{ .convert_tinyint = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_varbinary => .{ .convert_varbinary = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_varchar => .{ .convert_varchar = .{ .data = readInt(u32, odbc_buf) } },
-            .convert_functions => .{ .convert_functions = .{ .data = readInt(u32, odbc_buf) } },
+            .convert_bigint => .{ .convert_bigint = readInt(u32, odbc_buf) },
+            .convert_binary => .{ .convert_binary = readInt(u32, odbc_buf) },
+            .convert_bit => .{ .convert_bit = readInt(u32, odbc_buf) },
+            .convert_char => .{ .convert_char = readInt(u32, odbc_buf) },
+            .convert_date => .{ .convert_date = readInt(u32, odbc_buf) },
+            .convert_decimal => .{ .convert_decimal = readInt(u32, odbc_buf) },
+            .convert_double => .{ .convert_double = readInt(u32, odbc_buf) },
+            .convert_float => .{ .convert_float = readInt(u32, odbc_buf) },
+            .convert_integer => .{ .convert_integer = readInt(u32, odbc_buf) },
+            .convert_interval_day_time => .{ .convert_interval_day_time = readInt(u32, odbc_buf) },
+            .convert_interval_year_month => .{ .convert_interval_year_month = readInt(u32, odbc_buf) },
+            .convert_longvarbinary => .{ .convert_longvarbinary = readInt(u32, odbc_buf) },
+            .convert_longvarchar => .{ .convert_longvarchar = readInt(u32, odbc_buf) },
+            .convert_numeric => .{ .convert_numeric = readInt(u32, odbc_buf) },
+            .convert_real => .{ .convert_real = readInt(u32, odbc_buf) },
+            .convert_smallint => .{ .convert_smallint = readInt(u32, odbc_buf) },
+            .convert_time => .{ .convert_time = readInt(u32, odbc_buf) },
+            .convert_timestamp => .{ .convert_timestamp = readInt(u32, odbc_buf) },
+            .convert_tinyint => .{ .convert_tinyint = readInt(u32, odbc_buf) },
+            .convert_varbinary => .{ .convert_varbinary = readInt(u32, odbc_buf) },
+            .convert_varchar => .{ .convert_varchar = readInt(u32, odbc_buf) },
+            .convert_functions => .{ .convert_functions = readInt(u32, odbc_buf) },
             .correlation_name => .{ .correlation_name = @enumFromInt(readInt(u16, odbc_buf)) },
-            .create_assertion => .{ .create_assertion = .{ .data = readInt(u32, odbc_buf) } },
-            .create_character_set => .{ .create_character_set = .{ .data = readInt(u32, odbc_buf) } },
-            .create_collation => .{ .create_collation = .{ .data = readInt(u32, odbc_buf) } },
-            .create_domain => .{ .create_domain = .{ .data = readInt(u32, odbc_buf) } },
-            .create_schema => .{ .create_schema = .{ .data = readInt(u32, odbc_buf) } },
-            .create_table => .{ .create_table = .{ .data = readInt(u32, odbc_buf) } },
-            .create_translation => .{ .create_translation = .{ .data = readInt(u32, odbc_buf) } },
+            .create_assertion => .{ .create_assertion = readInt(u32, odbc_buf) },
+            .create_character_set => .{ .create_character_set = readInt(u32, odbc_buf) },
+            .create_collation => .{ .create_collation = readInt(u32, odbc_buf) },
+            .create_domain => .{ .create_domain = readInt(u32, odbc_buf) },
+            .create_schema => .{ .create_schema = readInt(u32, odbc_buf) },
+            .create_table => .{ .create_table = readInt(u32, odbc_buf) },
+            .create_translation => .{ .create_translation = readInt(u32, odbc_buf) },
             .cursor_commit_behavior => .{ .cursor_commit_behavior = @enumFromInt(readInt(u16, odbc_buf)) },
             .cursor_rollback_behavior => .{ .cursor_rollback_behavior = @enumFromInt(readInt(u16, odbc_buf)) },
             .cursor_sensitivity => .{ .cursor_sensitivity = @enumFromInt(readInt(u32, odbc_buf)) },
-            .data_source_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .data_source_name = str[0..] };
-            },
             .data_source_read_only => .{ .data_source_read_only = strToBool(odbc_buf, str_len, "Y") },
-            .database_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .database_name = str[0..] };
-            },
-            .dbms_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .dbms_name = str[0..] };
-            },
-            .dbms_ver => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .dbms_ver = str[0..] };
-            },
-            .ddl_index => .{ .ddl_index = .{ .data = readInt(u32, odbc_buf) } },
-            .default_txn_isolation => .{ .default_txn_isolation = .{ .data = readInt(u32, odbc_buf) } },
+            .ddl_index => .{ .ddl_index = readInt(u32, odbc_buf) },
+            .default_txn_isolation => .{ .default_txn_isolation = readInt(u32, odbc_buf) },
             .describe_parameter => .{ .describe_parameter = strToBool(odbc_buf, str_len, "Y") },
             .driver_hdbc => .{ .driver_hdbc = readInt(u32, odbc_buf) },
             .driver_henv => .{ .driver_henv = readInt(u32, odbc_buf) },
             .driver_hlib => .{ .driver_hlib = readInt(u32, odbc_buf) },
             .driver_hstmt => .{ .driver_hstmt = readInt(u32, odbc_buf) },
-            .driver_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .driver_name = str[0..] };
-            },
-            .driver_odbc_ver => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .driver_odbc_ver = str[0..] };
-            },
-            .driver_ver => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .driver_ver = str[0..] };
-            },
-            .drop_assertion => .{ .drop_assertion = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_character_set => .{ .drop_character_set = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_collation => .{ .drop_collation = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_domain => .{ .drop_domain = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_schema => .{ .drop_schema = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_table => .{ .drop_table = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_translation => .{ .drop_translation = .{ .data = readInt(u32, odbc_buf) } },
-            .drop_view => .{ .drop_view = .{ .data = readInt(u32, odbc_buf) } },
-            .dynamic_cursor_attributes1 => .{ .dynamic_cursor_attributes1 = .{ .data = readInt(u32, odbc_buf) } },
-            .dynamic_cursor_attributes2 => .{ .dynamic_cursor_attributes2 = .{ .data = readInt(u32, odbc_buf) } },
+            .drop_assertion => .{ .drop_assertion = readInt(u32, odbc_buf) },
+            .drop_character_set => .{ .drop_character_set = readInt(u32, odbc_buf) },
+            .drop_collation => .{ .drop_collation = readInt(u32, odbc_buf) },
+            .drop_domain => .{ .drop_domain = readInt(u32, odbc_buf) },
+            .drop_schema => .{ .drop_schema = readInt(u32, odbc_buf) },
+            .drop_table => .{ .drop_table = readInt(u32, odbc_buf) },
+            .drop_translation => .{ .drop_translation = readInt(u32, odbc_buf) },
+            .drop_view => .{ .drop_view = readInt(u32, odbc_buf) },
+            .dynamic_cursor_attributes1 => .{ .dynamic_cursor_attributes1 = readInt(u32, odbc_buf) },
+            .dynamic_cursor_attributes2 => .{ .dynamic_cursor_attributes2 = readInt(u32, odbc_buf) },
             .expressions_in_orderby => .{ .expressions_in_orderby = strToBool(odbc_buf, str_len, "Y") },
-            .fetch_direction => .{ .fetch_direction = .{ .data = readInt(u32, odbc_buf) } },
+            .fetch_direction => .{ .fetch_direction = readInt(u32, odbc_buf) },
             .file_usage => .{ .file_usage = readInt(u16, odbc_buf) },
-            .forward_only_cursor_attributes1 => .{ .forward_only_cursor_attributes1 = .{ .data = readInt(u32, odbc_buf) } },
-            .forward_only_cursor_attributes2 => .{ .forward_only_cursor_attributes2 = .{ .data = readInt(u32, odbc_buf) } },
-            .getdata_extensions => .{ .getdata_extensions = .{ .data = readInt(u32, odbc_buf) } },
+            .forward_only_cursor_attributes1 => .{ .forward_only_cursor_attributes1 = readInt(u32, odbc_buf) },
+            .forward_only_cursor_attributes2 => .{ .forward_only_cursor_attributes2 = readInt(u32, odbc_buf) },
+            .getdata_extensions => .{ .getdata_extensions = readInt(u32, odbc_buf) },
             .group_by => .{ .group_by = @enumFromInt(readInt(u16, odbc_buf)) },
             .identifier_case => .{ .identifier_case = @enumFromInt(readInt(u16, odbc_buf)) },
-            .identifier_quote_char => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .identifier_quote_char = str[0..] };
-            },
-            .info_schema_views => .{ .info_schema_views = .{ .data = readInt(u32, odbc_buf) } },
-            .insert_statement => .{ .insert_statement = .{ .data = readInt(u32, odbc_buf) } },
+            .info_schema_views => .{ .info_schema_views = readInt(u32, odbc_buf) },
+            .insert_statement => .{ .insert_statement = readInt(u32, odbc_buf) },
             .integrity => .{ .integrity = strToBool(odbc_buf, str_len, "Y") },
-            .keyset_cursor_attributes1 => .{ .keyset_cursor_attributes1 = .{ .data = readInt(u32, odbc_buf) } },
-            .keyset_cursor_attributes2 => .{ .keyset_cursor_attributes2 = .{ .data = readInt(u32, odbc_buf) } },
-            .keywords => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .keywords = str[0..] };
-            },
+            .keyset_cursor_attributes1 => .{ .keyset_cursor_attributes1 = readInt(u32, odbc_buf) },
+            .keyset_cursor_attributes2 => .{ .keyset_cursor_attributes2 = readInt(u32, odbc_buf) },
             .like_escape_clause => .{ .like_escape_clause = strToBool(odbc_buf, str_len, "Y") },
-            .lock_types => .{ .lock_types = .{ .data = readInt(u32, odbc_buf) } },
+            .lock_types => .{ .lock_types = readInt(u32, odbc_buf) },
             .max_async_concurrent_statements => .{ .max_async_concurrent_statements = readInt(u32, odbc_buf) },
             .max_binary_literal_len => .{ .max_binary_literal_len = readInt(u32, odbc_buf) },
             .max_catalog_name_len => .{ .max_catalog_name_len = readInt(u16, odbc_buf) },
@@ -557,82 +454,37 @@ pub const InfoTypeValue = union(InfoType) {
             .need_long_data_len => .{ .need_long_data_len = strToBool(odbc_buf, str_len, "Y") },
             .non_nullable_columns => .{ .non_nullable_columns = @enumFromInt(readInt(u16, odbc_buf)) },
             .null_collation => .{ .null_collation = @enumFromInt(readInt(u16, odbc_buf)) },
-            .numeric_functions => .{ .numeric_functions = .{ .data = readInt(u32, odbc_buf) } },
+            .numeric_functions => .{ .numeric_functions = readInt(u32, odbc_buf) },
             .odbc_api_conformance => .{ .odbc_api_conformance = @enumFromInt(readInt(u16, odbc_buf)) },
             .odbc_sag_cli_conformance => .{ .odbc_sag_cli_conformance = @enumFromInt(readInt(u16, odbc_buf)) },
             .odbc_sql_conformance => .{ .odbc_sql_conformance = @enumFromInt(readInt(u16, odbc_buf)) },
-            .odbc_ver => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .odbc_ver = str[0..] };
-            },
-            .oj_capabilities => .{ .oj_capabilities = .{ .data = readInt(u32, odbc_buf) } },
+            .oj_capabilities => .{ .oj_capabilities = readInt(u32, odbc_buf) },
             .order_by_columns_in_select => .{ .order_by_columns_in_select = strToBool(odbc_buf, str_len, "Y") },
             .outer_joins => .{ .outer_joins = strToBool(odbc_buf, str_len, "Y") },
-            .owner_term => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .owner_term = str[0..] };
-            },
             .param_array_row_counts => .{ .param_array_row_counts = @enumFromInt(readInt(u32, odbc_buf)) },
             .param_array_selects => .{ .param_array_selects = @enumFromInt(readInt(u32, odbc_buf)) },
-            .pos_operations => .{ .pos_operations = .{ .data = readInt(u32, odbc_buf) } },
-            .positioned_statements => .{ .positioned_statements = .{ .data = readInt(u32, odbc_buf) } },
-            .procedure_term => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .procedure_term = str[0..] };
-            },
+            .pos_operations => .{ .pos_operations = readInt(u32, odbc_buf) },
+            .positioned_statements => .{ .positioned_statements = readInt(u32, odbc_buf) },
             .procedures => .{ .procedures = strToBool(odbc_buf, str_len, "Y") },
             .quoted_identifier_case => .{ .quoted_identifier_case = @enumFromInt(readInt(u16, odbc_buf)) },
             .row_updates => .{ .row_updates = strToBool(odbc_buf, str_len, "Y") },
-            .schema_usage => .{ .schema_usage = .{ .data = readInt(u32, odbc_buf) } },
-            .scroll_concurrency => .{ .scroll_concurrency = .{ .data = readInt(u32, odbc_buf) } },
-            .scroll_options => .{ .scroll_options = .{ .data = readInt(u32, odbc_buf) } },
-            .search_pattern_escape => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .search_pattern_escape = str[0..] };
-            },
-            .server_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .server_name = str[0..] };
-            },
-            .special_characters => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .special_characters = str[0..] };
-            },
-            .sql92_predicates => .{ .sql92_predicates = .{ .data = readInt(u32, odbc_buf) } },
-            .sql92_value_expressions => .{ .sql92_value_expressions = .{ .data = readInt(u32, odbc_buf) } },
-            .static_cursor_attributes1 => .{ .static_cursor_attributes1 = .{ .data = readInt(u32, odbc_buf) } },
-            .static_cursor_attributes2 => .{ .static_cursor_attributes2 = .{ .data = readInt(u32, odbc_buf) } },
-            .static_sensitivity => .{ .static_sensitivity = .{ .data = readInt(u32, odbc_buf) } },
-            .string_functions => .{ .string_functions = .{ .data = readInt(u32, odbc_buf) } },
-            .subqueries => .{ .subqueries = .{ .data = readInt(u32, odbc_buf) } },
-            .system_functions => .{ .system_functions = .{ .data = readInt(u32, odbc_buf) } },
-            .table_term => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .table_term = str[0..] };
-            },
-            .timedate_add_intervals => .{ .timedate_add_intervals = .{ .data = readInt(u32, odbc_buf) } },
-            .timedate_diff_intervals => .{ .timedate_diff_intervals = .{ .data = readInt(u32, odbc_buf) } },
-            .timedate_functions => .{ .timedate_functions = .{ .data = readInt(u32, odbc_buf) } },
+            .schema_usage => .{ .schema_usage = readInt(u32, odbc_buf) },
+            .scroll_concurrency => .{ .scroll_concurrency = readInt(u32, odbc_buf) },
+            .scroll_options => .{ .scroll_options = readInt(u32, odbc_buf) },
+            .sql92_predicates => .{ .sql92_predicates = readInt(u32, odbc_buf) },
+            .sql92_value_expressions => .{ .sql92_value_expressions = readInt(u32, odbc_buf) },
+            .static_cursor_attributes1 => .{ .static_cursor_attributes1 = readInt(u32, odbc_buf) },
+            .static_cursor_attributes2 => .{ .static_cursor_attributes2 = readInt(u32, odbc_buf) },
+            .static_sensitivity => .{ .static_sensitivity = readInt(u32, odbc_buf) },
+            .string_functions => .{ .string_functions = readInt(u32, odbc_buf) },
+            .subqueries => .{ .subqueries = readInt(u32, odbc_buf) },
+            .system_functions => .{ .system_functions = readInt(u32, odbc_buf) },
+            .timedate_add_intervals => .{ .timedate_add_intervals = readInt(u32, odbc_buf) },
+            .timedate_diff_intervals => .{ .timedate_diff_intervals = readInt(u32, odbc_buf) },
+            .timedate_functions => .{ .timedate_functions = readInt(u32, odbc_buf) },
             .txn_capable => .{ .txn_capable = @enumFromInt(readInt(u16, odbc_buf)) },
-            .txn_isolation_option => .{ .txn_isolation_option = .{ .data = readInt(u32, odbc_buf) } },
-            .@"union" => .{ .@"union" = .{ .data = readInt(u32, odbc_buf) } },
-            .user_name => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .user_name = str[0..] };
-            },
-            .xopen_cli_year => {
-                const str = try allocator.alloc(u8, @intCast(str_len));
-                @memcpy(str, odbc_buf[0..@intCast(str_len)]);
-                return .{ .xopen_cli_year = str[0..] };
-            },
+            .txn_isolation_option => .{ .txn_isolation_option = readInt(u32, odbc_buf) },
+            .@"union" => .{ .@"union" = readInt(u32, odbc_buf) },
             // IBM Db2 specific info types
             // .AsciiGccsid => .{ .AsciiGccsid = value },
             // .AsciiMccsid => .{ .AsciiMccsid = value },
@@ -648,186 +500,15 @@ pub const InfoTypeValue = union(InfoType) {
         };
     }
 
-    pub fn deinit(self: InfoTypeValue, allocator: std.mem.Allocator) void {
-        return switch (self) {
-            .catalog_name_separator => |v| allocator.free(v),
-            .catalog_term => |v| allocator.free(v),
-            .collation_seq => |v| allocator.free(v),
-            .data_source_name => |v| allocator.free(v),
-            .database_name => |v| allocator.free(v),
-            .dbms_name => |v| allocator.free(v),
-            .dbms_ver => |v| allocator.free(v),
-            .driver_name => |v| allocator.free(v),
-            .driver_odbc_ver => |v| allocator.free(v),
-            .driver_ver => |v| allocator.free(v),
-            .identifier_quote_char => |v| allocator.free(v),
-            .keywords => |v| allocator.free(v),
-            .odbc_ver => |v| allocator.free(v),
-            .owner_term => |v| allocator.free(v),
-            .procedure_term => |v| allocator.free(v),
-            .search_pattern_escape => |v| allocator.free(v),
-            .server_name => |v| allocator.free(v),
-            .special_characters => |v| allocator.free(v),
-            .table_term => |v| allocator.free(v),
-            .user_name => |v| allocator.free(v),
-            .xopen_cli_year => |v| allocator.free(v),
-            else => {},
-        };
-    }
-
-    pub const AggregateFunctionsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const AlterDomainMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const AlterTableMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const BatchRowCountMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const BatchSupportMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const BookmarkPersistenceMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CatalogUsageMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertBigintMask = struct {
-        data: u32 = undefined,
-    };
-
     pub const ConcatNullBehavior = enum(c_int) {
         null = c.SQL_CB_NULL,
         non_null = c.SQL_CB_NON_NULL,
-    };
-
-    pub const ConvertBinaryMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertBitMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertCharMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertDateMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertDecimalMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertDoubleMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertFloatMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertIntegerMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertIntervalDayTimeMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertIntervalYearMonthMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertLongvarbinaryMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertLongvarcharMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertNumericMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertRealMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertSmallintMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertTimeMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertTimestampMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertTinyintMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertVarbinaryMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertVarcharMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ConvertFunctionsMask = struct {
-        data: u32 = undefined,
     };
 
     pub const CorrelationName = enum(c_int) {
         any = c.SQL_CN_ANY,
         none = c.SQL_CN_NONE,
         different = c.SQL_CN_DIFFERENT,
-    };
-
-    pub const CreateAssertionMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateCharacterSetMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateCollationMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateDomainMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateSchemaMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateTableMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const CreateTranslationMask = struct {
-        data: u32 = undefined,
     };
 
     pub const CursorBehavior = enum(c_int) {
@@ -840,70 +521,6 @@ pub const InfoTypeValue = union(InfoType) {
         insensitive = c.SQL_INSENSITIVE,
         unspecified = c.SQL_UNSPECIFIED,
         sensitive = c.SQL_SENSITIVE,
-    };
-
-    pub const DdlIndexMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DefaultTxnIsolationMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropAssertionMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropCharacterSetMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropCollationMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropDomainMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropSchemaMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropTableMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropTranslationMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DropViewMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DynamicCursorAttributes1Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const DynamicCursorAttributes2Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const FetchDirectionMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ForwardOnlyCursorAttributes1Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ForwardOnlyCursorAttributes2Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const GetdataExtensionsMask = struct {
-        data: u32 = undefined,
     };
 
     pub const GroupBy = enum(c_int) {
@@ -920,26 +537,6 @@ pub const InfoTypeValue = union(InfoType) {
         mixed = c.SQL_IC_MIXED,
     };
 
-    pub const InfoSchemaViewsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const InsertStatementMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const KeysetCursorAttributes1Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const KeysetCursorAttributes2Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const LockTypesMask = struct {
-        data: u32 = undefined,
-    };
-
     pub const NonNullableColumns = enum(c_int) {
         non_null = c.SQL_NNC_NON_NULL,
         null = c.SQL_NNC_NULL,
@@ -948,10 +545,6 @@ pub const InfoTypeValue = union(InfoType) {
     pub const NullCollation = enum(c_int) {
         high = c.SQL_NC_HIGH,
         low = c.SQL_NC_LOW,
-    };
-
-    pub const NumericFunctionsMask = struct {
-        data: u32 = undefined,
     };
 
     pub const OdbcApiConformance = enum(c_int) {
@@ -971,10 +564,6 @@ pub const InfoTypeValue = union(InfoType) {
         extended = c.SQL_OSC_EXTENDED,
     };
 
-    pub const OjCapabilitiesMask = struct {
-        data: u32 = undefined,
-    };
-
     pub const ParamArrayRowCounts = enum(c_int) {
         batch = c.SQL_PARC_BATCH,
         no_batch = c.SQL_PARC_NO_BATCH,
@@ -986,75 +575,11 @@ pub const InfoTypeValue = union(InfoType) {
         no_select = c.SQL_PAS_NO_SELECT,
     };
 
-    pub const PosOperationsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const PositionedStatementsMask = struct {
-        data: u32 = undefined,
-    };
-
     pub const QuotedIdentifierCase = enum(c_int) {
         upper = c.SQL_IC_UPPER,
         lower = c.SQL_IC_LOWER,
         sensitive = c.SQL_IC_SENSITIVE,
         mixed = c.SQL_IC_MIXED,
-    };
-
-    pub const SchemaUsageMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ScrollConcurrencyMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const ScrollOptionsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const Sql92PredicatesMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const Sql92ValueExpressionsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const StaticCursorAttributes1Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const StaticCursorAttributes2Mask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const StaticSensitivityMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const StringFunctionsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const SubqueriesMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const SystemFunctionsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const TimedateAddIntervalsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const TimedateDiffIntervalsMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const TimedateFunctionsMask = struct {
-        data: u32 = undefined,
     };
 
     pub const TxnCapable = enum(c_int) {
@@ -1063,13 +588,5 @@ pub const InfoTypeValue = union(InfoType) {
         ddl_commit = c.SQL_TC_DDL_COMMIT,
         ddl_ignore = c.SQL_TC_DDL_IGNORE,
         all = c.SQL_TC_ALL,
-    };
-
-    pub const TxnIsolationOptionMask = struct {
-        data: u32 = undefined,
-    };
-
-    pub const UnionMask = struct {
-        data: u32 = undefined,
     };
 };
