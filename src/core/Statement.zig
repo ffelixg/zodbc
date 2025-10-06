@@ -279,12 +279,13 @@ pub fn numParams(self: Self) !i16 {
 }
 
 pub fn numResultCols(self: Self) !usize {
-    var column_count: usize = 0;
-    return switch (sql.SQLNumResultCols(self.handle(), &column_count)) {
-        .SUCCESS => column_count,
-        .ERR => NumResultColsError.Error,
-        .INVALID_HANDLE => NumResultColsError.InvalidHandle,
-        .STILL_EXECUTING => NumResultColsError.StillExecuting,
+    var column_count: i16 = 0;
+    return switch (c.SQLNumResultCols(self.handle(), &column_count)) {
+        c.SQL_SUCCESS => @intCast(column_count),
+        c.SQL_SUCCESS_WITH_INFO => error.NumResultColsSuccessWithInfo,
+        c.SQL_ERROR => error.NumResultColsError,
+        c.SQL_INVALID_HANDLE => error.NumResultColsInvalidHandle,
+        else => unreachable,
     };
 }
 

@@ -36,15 +36,13 @@ next_row: usize,
 n_cols: usize,
 n_cols_bound: usize,
 stmt: core.Statement,
-desc: core.Descriptor.AppRowDesc,
 columns: std.ArrayListUnmanaged(Column),
 array_status: []RowStatus,
 borrowed_row: []?[]u8,
 allocator: std.mem.Allocator,
 
-pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
+pub fn init(stmt: core.Statement, desc: core.Descriptor.AppRowDesc, allocator: std.mem.Allocator) !ResultSet {
     errdefer stmt.free(.unbind) catch {};
-    const desc = try core.Descriptor.AppRowDesc.fromStatement(stmt);
     const n_cols = try stmt.numResultCols();
     if (n_cols == 0) return error.NoResultSet;
     var n_cols_bound: usize = n_cols;
@@ -74,7 +72,7 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
             .guid => .guid,
             .ss_time2 => .ss_time2,
             .ss_timestampoffset => .ss_timestampoffset,
-            else => @panic("unsupported type"),
+            inline else => |tag| return @field(anyerror, "Unsupported SQL Type: " ++ @tagName(tag)),
         };
         c_type.* = .{ .format = format, .len = blk: {
             const null_terminator: u1 = switch (format) {
@@ -157,7 +155,6 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
 
     return .{
         .stmt = stmt,
-        .desc = desc,
         .odbc_buf_rows = odbc_buf_rows,
         // Means that no data is loaded into the buffers yet.
         .next_row = odbc_buf_rows,
