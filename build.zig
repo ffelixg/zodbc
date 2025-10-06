@@ -75,7 +75,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/cli/root.zig"),
     });
     cli_mod.addImport("zodbc", zodbc_mod);
-    cli_mod.addImport("zig-cli", zig_cli_dep.module("zig-cli"));
+    cli_mod.addImport("zig-cli", zig_cli_dep.module("cli"));
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -87,7 +87,8 @@ pub fn build(b: *std.Build) void {
     // ----------------------------
     // Library
     // ----------------------------
-    const lib = b.addSharedLibrary(.{
+    const lib = b.addLibrary(.{
+        .linkage = .dynamic,
         .name = "zodbc",
         .root_module = zodbc_mod,
         .version = .{ .major = 0, .minor = 0, .patch = 0 },
@@ -105,7 +106,7 @@ pub fn build(b: *std.Build) void {
         .name = "zodbc",
         .root_module = exe_mod,
     });
-    exe.root_module.addImport("zig-cli", zig_cli_dep.module("zig-cli"));
+    exe.root_module.addImport("zig-cli", zig_cli_dep.module("cli"));
     exe.linkLibrary(lib);
     b.installArtifact(exe);
 
