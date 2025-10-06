@@ -46,6 +46,7 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
     errdefer stmt.free(.unbind) catch {};
     const desc = try core.Descriptor.AppRowDesc.fromStatement(stmt);
     const n_cols = try stmt.numResultCols();
+    if (n_cols == 0) return error.NoResultSet;
     var n_cols_bound: usize = n_cols;
 
     const c_types = try allocator.alloc(struct { format: CDataType, len: usize }, n_cols);
@@ -108,27 +109,34 @@ pub fn init(stmt: core.Statement, allocator: std.mem.Allocator) !ResultSet {
         const col_odbc_indicator = try allocator.alloc(i64, odbc_buf_rows);
         errdefer allocator.free(col_odbc_indicator);
 
-        try desc.setField(col_number, .concise_type, c_type.format);
+        var type_specific: @FieldType(Column, "type_specific") = null;
 
-        const type_specific: @FieldType(Column, "type_specific") = switch (c_type.format) {
-            .numeric => blk: {
-                const precision = try stmt.colAttribute(col_number, .precision);
-                try desc.setField(col_number, .precision, @intCast(precision));
-                const scale = try stmt.colAttribute(col_number, .scale);
-                try desc.setField(col_number, .scale, @intCast(scale));
-                break :blk .{ .decimal = .{ .precision = @intCast(precision), .scale = @intCast(scale) } };
-            },
-            else => null,
-        };
-        if (col_number_usize < n_cols_bound) {
-            try desc.setField(col_number, .octet_length, @intCast(@divExact(col_odbc_buffer.len, odbc_buf_rows)));
-            try desc.setField(col_number, .indicator_ptr, col_odbc_indicator.ptr);
-            switch (c_type.format) {
-                .char, .wchar, .binary => try desc.setField(col_number, .octet_length_ptr, col_odbc_indicator.ptr),
-                else => {},
+        if (c_type.format == .numeric) {
+            try desc.setField(col_number, .concise_type, c_type.format);
+
+            const precision = try stmt.colAttribute(col_number, .precision);
+            try desc.setField(col_number, .precision, @intCast(precision));
+            const scale = try stmt.colAttribute(col_number, .scale);
+            try desc.setField(col_number, .scale, @intCast(scale));
+            type_specific = .{ .decimal = .{ .precision = @intCast(precision), .scale = @intCast(scale) } };
+
+            if (col_number_usize < n_cols_bound) {
+                // try desc.setField(col_number, .octet_length, @intCast(@divExact(col_odbc_buffer.len, odbc_buf_rows)));
+                try desc.setField(col_number, .indicator_ptr, col_odbc_indicator.ptr);
+                try desc.setField(col_number, .data_ptr, col_odbc_buffer.ptr);
             }
-            try desc.setField(col_number, .data_ptr, col_odbc_buffer.ptr);
+        } else if (col_number_usize < n_cols_bound) {
+            try stmt.bindCol(
+                col_number,
+                c_type.format,
+                col_odbc_buffer.ptr,
+                @intCast(@divExact(col_odbc_buffer.len, odbc_buf_rows)),
+                col_odbc_indicator.ptr,
+            );
+        } else {
+            try desc.setField(col_number, .concise_type, c_type.format);
         }
+
         columns.appendAssumeCapacity(.{
             .c_type = c_type.format,
             .buf_indicator = col_odbc_indicator,
