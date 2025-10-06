@@ -544,6 +544,7 @@ pub const StmtAttrValue = union {
     rows_fetched_ptr: ?*u64,
     param_bind_offset_ptr: ?*u64,
     params_processed_ptr: ?*u64,
+    paramset_size: u64,
     row_bind_offset_ptr: ?*u64,
 };
 
@@ -564,7 +565,6 @@ pub const StmtAttrValue = union {
 // SQL_ATTR_METADATA_ID (ODBC 3.0) An SQLULEN value that determines how the string arguments of catalog functions are treated.
 // SQL_ATTR_NOSCAN (ODBC 1.0) An SQLULEN value that indicates whether the driver should scan SQL strings for escape sequences:
 // SQL_ATTR_PARAM_BIND_TYPE (ODBC 3.0) An SQLULEN value that indicates the binding orientation to be used for dynamic parameters.
-// SQL_ATTR_PARAMSET_SIZE (ODBC 3.0) An SQLULEN value that specifies the number of values for each parameter. If SQL_ATTR_PARAMSET_SIZE is greater than 1, SQL_DESC_DATA_PTR, SQL_DESC_INDICATOR_PTR, and SQL_DESC_OCTET_LENGTH_PTR of the APD point to arrays. The cardinality of each array is equal to the value of this field.
 // SQL_ATTR_QUERY_TIMEOUT (ODBC 1.0) An SQLULEN value corresponding to the number of seconds to wait for a SQL statement to execute before returning to the application. If ValuePtr is equal to 0 (default), there is no timeout.
 // SQL_ATTR_RETRIEVE_DATA (ODBC 2.0) An SQLULEN value:
 // SQL_ATTR_ROW_ARRAY_SIZE (ODBC 3.0) An SQLULEN value that specifies the number of rows returned by each call to SQLFetch or SQLFetchScroll. It is also the number of rows in a bookmark array used in a bulk bookmark operation in SQLBulkOperations. The default value is 1.

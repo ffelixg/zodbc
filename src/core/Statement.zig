@@ -210,15 +210,49 @@ pub fn getFunctions(self: Self) !void {
 }
 
 pub fn cancel(self: Self) !void {
-    _ = self;
+    return switch (c.SQLCancel(self.handle())) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.CancelSuccessWithInfo,
+        c.SQL_ERROR => error.CancelError,
+        c.SQL_INVALID_HANDLE => error.CancelInvalidHandle,
+        c.SQL_NO_DATA => error.CancelNoData,
+        else => unreachable,
+    };
 }
 
 pub fn endTran(self: Self) !void {
     _ = self;
 }
 
-pub fn describeParam(self: Self) !void {
-    _ = self;
+pub fn describeParam(self: Self, col_number: u15) !struct {
+    sql_type: types.SQLDataType,
+    length: u64,
+    scale: i16,
+    nullable: attrs.Nullable,
+} {
+    var sql_type: i16 = 0;
+    var length: u64 = 0;
+    var scale: i16 = 0;
+    var nullable: i16 = 0;
+    return switch (c.SQLDescribeParam(
+        self.handle(),
+        col_number,
+        &sql_type,
+        &length,
+        &scale,
+        &nullable,
+    )) {
+        c.SQL_SUCCESS => return .{
+            .sql_type = @enumFromInt(sql_type),
+            .length = length,
+            .scale = scale,
+            .nullable = @enumFromInt(nullable),
+        },
+        c.SQL_SUCCESS_WITH_INFO => error.DescribeParamSuccessWithInfo,
+        c.SQL_ERROR => error.DescribeParamError,
+        c.SQL_INVALID_HANDLE => error.DescribeParamInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn prepare(self: Self, stmt_str: []const u8) !void {
@@ -229,6 +263,17 @@ pub fn prepare(self: Self, stmt_str: []const u8) !void {
         c.SQL_SUCCESS_WITH_INFO => error.PrepareSuccessWithInfo,
         c.SQL_ERROR => error.PrepareError,
         c.SQL_INVALID_HANDLE => error.PrepareInvalidHandle,
+        else => unreachable,
+    };
+}
+
+pub fn numParams(self: Self) !i16 {
+    var parameter_count: i16 = 0;
+    return switch (c.SQLNumParams(self.handle(), &parameter_count)) {
+        c.SQL_SUCCESS => parameter_count,
+        c.SQL_SUCCESS_WITH_INFO => error.NumParamsSuccessWithInfo,
+        c.SQL_ERROR => error.NumParamsError,
+        c.SQL_INVALID_HANDLE => error.NumParamsInvalidHandle,
         else => unreachable,
     };
 }
@@ -306,7 +351,7 @@ pub fn getDataVar(self: Self, col_number: u16, c_type: types.CDataType, data_ptr
         start = data_ptr.*.len - size_null_terminator;
         data_ptr.* = switch (c_type) {
             .wchar => @ptrCast(try allocator.realloc(
-                @as([]u16, @alignCast(@ptrCast(data_ptr.*))),
+                @as([]u16, @ptrCast(@alignCast(data_ptr.*))),
                 @divExact(end, 2),
             )),
             .char => try allocator.realloc(data_ptr.*, end),
@@ -338,20 +383,24 @@ pub fn getData(self: Self, col_number: u16, c_type: types.CDataType, data: []u8,
 pub fn bindCol(
     self: Self,
     col_number: c_ushort,
-    col: *types.Column,
+    c_type: types.CDataType,
+    buffer: [*]u8,
+    buffer_size: usize,
+    indicator: [*]i64,
 ) !void {
-    return switch (sql.SQLBindCol(
+    return switch (c.SQLBindCol(
         self.handle(),
         col_number,
-        col,
+        @intFromEnum(c_type),
+        buffer,
+        @intCast(buffer_size),
+        indicator,
     )) {
-        .SUCCESS => {},
-        .ERR => {
-            const lastError = self.getLastError();
-            std.debug.print("lastError: {}\n", .{lastError});
-            return BindColError.Error;
-        },
-        .INVALID_HANDLE => BindColError.InvalidHandle,
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.BindColSuccessWithInfo,
+        c.SQL_ERROR => error.BindColError,
+        c.SQL_INVALID_HANDLE => error.BindColInvalidHandle,
+        else => unreachable,
     };
 }
 
@@ -363,8 +412,37 @@ pub fn bindFileToParam(self: Self) !void {
     _ = self;
 }
 
-pub fn bindParameter(self: Self) !void {
-    _ = self;
+pub fn bindParameter(
+    self: Self,
+    param_number: u16,
+    kind: attrs.ParameterType,
+    c_type: types.CDataType,
+    sql_type: types.SQLDataType,
+    ipd_length: u64,
+    decimal_digits: i16,
+    data: ?[*]u8,
+    apd_length: i64,
+    indicator: ?[*]i64,
+) !void {
+    return switch (c.SQLBindParameter(
+        self.handle(),
+        param_number,
+        @intFromEnum(kind),
+        @intFromEnum(c_type),
+        @intFromEnum(sql_type),
+        ipd_length,
+        decimal_digits,
+        @ptrCast(data),
+        apd_length,
+        indicator,
+    )) {
+        c.SQL_SUCCESS => {},
+        c.SQL_SUCCESS_WITH_INFO => error.BindParameterSuccessWithInfo,
+        c.SQL_NEED_DATA => error.BindParameterNeedData,
+        c.SQL_ERROR => error.BindParameterError,
+        c.SQL_INVALID_HANDLE => error.BindParameterInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub fn paramData(self: Self, T: type) !?*T {
@@ -374,7 +452,7 @@ pub fn paramData(self: Self, T: type) !?*T {
         @ptrCast(&ptr),
     )) {
         c.SQL_SUCCESS => null,
-        c.SQL_NEED_DATA => @alignCast(@ptrCast(ptr orelse unreachable)),
+        c.SQL_NEED_DATA => @ptrCast(@alignCast(ptr orelse unreachable)),
         c.SQL_SUCCESS_WITH_INFO => error.ParamDataSuccessWithInfo,
         c.SQL_NO_DATA => error.ParamDataNoData,
         c.SQL_STILL_EXECUTING => error.ParamDataStillExecuting,
@@ -451,7 +529,7 @@ pub fn setStmtAttr(
         self.handle(),
         @intFromEnum(attr),
         @ptrFromInt(@import("utils.zig").toUsize(value)),
-        0,
+        c.SQL_IS_INTEGER,
     )) {
         c.SQL_SUCCESS => {},
         c.SQL_SUCCESS_WITH_INFO => error.SetStmtAttrSuccessWithInfo,
@@ -531,6 +609,17 @@ pub fn fetchScroll(
 
 pub fn describeColumns(self: Self) !void {
     _ = self;
+}
+
+pub fn rowCount(self: Self) !i64 {
+    var count: i64 = 0;
+    return switch (c.SQLRowCount(self.handle(), &count)) {
+        c.SQL_SUCCESS => count,
+        c.SQL_SUCCESS_WITH_INFO => error.RowCountSuccessWithInfo,
+        c.SQL_ERROR => error.RowCountError,
+        c.SQL_INVALID_HANDLE => error.RowCountInvalidHandle,
+        else => unreachable,
+    };
 }
 
 pub const ColumnsError = error{
