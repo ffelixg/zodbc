@@ -452,9 +452,9 @@ pub fn getLastError(handle_type: types.HandleType, handle: ?*anyopaque) LastErro
     const records = DiagRecs.init(
         handle_type,
         handle,
-        std.heap.smp_allocator,
+        std.heap.c_allocator,
     ) catch return SqlStateError.GeneralError;
-    defer records.deinit(std.heap.smp_allocator);
+    defer records.deinit(std.heap.c_allocator);
     if (records.items.len == 0) {
         return error.NoError;
     }

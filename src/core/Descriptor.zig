@@ -152,8 +152,8 @@ fn setFieldGenericString(
     comptime attr: anytype,
     value: []const u8,
 ) !void {
-    const value_wide = try std.unicode.wtf8ToWtf16LeAlloc(std.heap.smp_allocator, value);
-    defer std.heap.smp_allocator.free(value_wide);
+    const value_wide = try std.unicode.wtf8ToWtf16LeAlloc(std.heap.c_allocator, value);
+    defer std.heap.c_allocator.free(value_wide);
     return switch (c.SQLSetDescFieldW(
         handle,
         col_number,

@@ -178,8 +178,8 @@ pub fn setConnectAttr(
 }
 
 pub fn connectWithString(self: *const Self, constr: []const u8) !void {
-    const constr_16 = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.smp_allocator, constr);
-    defer std.heap.smp_allocator.free(constr_16);
+    const constr_16 = try std.unicode.wtf8ToWtf16LeAllocZ(std.heap.c_allocator, constr);
+    defer std.heap.c_allocator.free(constr_16);
     return switch (c.SQLDriverConnectW(
         self.handle(),
         null,
