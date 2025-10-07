@@ -106,31 +106,6 @@ pub fn colAttributeString(
     col_number: u16,
     attr: attrs.ColAttributeString,
     allocator: std.mem.Allocator,
-) ![]u8 {
-    var str_len: i16 = 0;
-    var odbc_buf: [1024]u16 = undefined;
-    return switch (c.SQLColAttributeW(
-        self.handle(),
-        col_number,
-        @intFromEnum(attr),
-        &odbc_buf,
-        @intCast(odbc_buf.len),
-        &str_len,
-        null,
-    )) {
-        c.SQL_SUCCESS => try std.unicode.wtf16LeToWtf8Alloc(allocator, odbc_buf[0..@intCast(str_len)]),
-        c.SQL_SUCCESS_WITH_INFO => error.ColAttibuteSuccessWithInfo,
-        c.SQL_ERROR => error.ColAttributeError,
-        c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
-        else => unreachable,
-    };
-}
-
-pub fn colAttributeStringZ(
-    self: Self,
-    col_number: u16,
-    attr: attrs.ColAttributeString,
-    allocator: std.mem.Allocator,
 ) ![:0]u8 {
     var str_len: i16 = 0;
     var odbc_buf: [1024]u16 = undefined;
@@ -143,7 +118,7 @@ pub fn colAttributeStringZ(
         &str_len,
         null,
     )) {
-        c.SQL_SUCCESS => try std.unicode.wtf16LeToWtf8AllocZ(allocator, odbc_buf[0..@intCast(str_len)]),
+        c.SQL_SUCCESS => try std.unicode.wtf16LeToWtf8AllocZ(allocator, odbc_buf[0..@intCast(@divExact(str_len, 2))]),
         c.SQL_SUCCESS_WITH_INFO => error.ColAttibuteSuccessWithInfo,
         c.SQL_ERROR => error.ColAttributeError,
         c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
