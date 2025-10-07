@@ -282,6 +282,8 @@ const ReadFieldsImpParamDesc = enum(u15) {
 const ReadFieldsImpParamDescString = enum(u15) {
     local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
     name = c.SQL_DESC_NAME,
+    ss_type_name = c.SQL_CA_SS_TYPE_NAME,
+    ss_schema_name = c.SQL_CA_SS_SCHEMA_NAME,
 };
 
 const WriteFieldsAppRowDesc = enum(u15) {
@@ -348,6 +350,8 @@ const WriteFieldsImpParamDesc = enum(u15) {
 
 const WriteFieldsImpParamDescString = enum(u15) {
     name = c.SQL_DESC_NAME,
+    ss_type_name = c.SQL_CA_SS_TYPE_NAME,
+    ss_schema_name = c.SQL_CA_SS_SCHEMA_NAME,
 };
 
 pub const AppRowDesc = struct {
