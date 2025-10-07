@@ -467,9 +467,28 @@ pub const DiagRec = struct {
     native_error: i32,
     sql_state: [5]u8,
     err: ?SqlStateError,
+
+    pub fn format(
+        this: @This(),
+        writer: *std.Io.Writer,
+    ) !void {
+        if (this.err) |err| {
+            try writer.print("{s} ", .{@errorName(err)});
+        }
+        try writer.print("[{s}]{s}", .{ this.sql_state, this.message });
+    }
 };
 pub const DiagRecs = struct {
     items: []const DiagRec,
+
+    pub fn format(this: @This(), writer: *std.Io.Writer) !void {
+        for (this.items, 0..) |rec, index| {
+            try writer.print("{f}", .{rec});
+            if (index < this.items.len - 1) {
+                _ = try writer.writeByte('\n');
+            }
+        }
+    }
 
     pub fn init(handle_type: types.HandleType, handle: ?*anyopaque, allocator: std.mem.Allocator) !@This() {
         var n_recs: u64 = 0;
