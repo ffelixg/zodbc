@@ -5,6 +5,7 @@ const types = @import("types.zig");
 const readInt = mem.readInt;
 
 const c = @import("c");
+const msodbcsql_h = @import("root.zig").msodbcsql_h;
 
 /// IRD array status
 pub const RowStatus = enum(u16) {
@@ -527,7 +528,7 @@ pub const StmtAttr = enum(i32) {
     rows_fetched_ptr = c.SQL_ATTR_ROWS_FETCHED_PTR,
     simulate_cursor = c.SQL_ATTR_SIMULATE_CURSOR,
     use_bookmarks = c.SQL_ATTR_USE_BOOKMARKS,
-    ss_param_focus = c.SQL_SOPT_SS_PARAM_FOCUS,
+    ss_param_focus = msodbcsql_h(1225 + 11, "SQL_SOPT_SS_PARAM_FOCUS"),
 };
 
 pub const StmtAttrValue = union {

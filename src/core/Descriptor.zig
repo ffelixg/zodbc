@@ -8,6 +8,7 @@ const attrs = odbc.attributes;
 const types = odbc.types;
 const sql = odbc.sql;
 const c = odbc.c;
+const msodbcsql_h = odbc.msodbcsql_h;
 
 const DescriptorKind = enum { imp_row_desc, app_row_desc, imp_param_desc, app_param_desc };
 
@@ -282,8 +283,9 @@ const ReadFieldsImpParamDesc = enum(u15) {
 const ReadFieldsImpParamDescString = enum(u15) {
     local_type_name = c.SQL_DESC_LOCAL_TYPE_NAME,
     name = c.SQL_DESC_NAME,
-    ss_type_name = c.SQL_CA_SS_TYPE_NAME,
-    ss_schema_name = c.SQL_CA_SS_SCHEMA_NAME,
+    ss_catalog_name = msodbcsql_h(1200 + 25, "SQL_CA_SS_CATALOG_NAME"),
+    ss_schema_name = msodbcsql_h(1200 + 26, "SQL_CA_SS_SCHEMA_NAME"),
+    ss_type_name = msodbcsql_h(1200 + 27, "SQL_CA_SS_TYPE_NAME"),
 };
 
 const WriteFieldsAppRowDesc = enum(u15) {
@@ -350,8 +352,9 @@ const WriteFieldsImpParamDesc = enum(u15) {
 
 const WriteFieldsImpParamDescString = enum(u15) {
     name = c.SQL_DESC_NAME,
-    ss_type_name = c.SQL_CA_SS_TYPE_NAME,
-    ss_schema_name = c.SQL_CA_SS_SCHEMA_NAME,
+    ss_type_name = msodbcsql_h(1200 + 27, "SQL_CA_SS_TYPE_NAME"),
+    ss_schema_name = msodbcsql_h(1200 + 26, "SQL_CA_SS_SCHEMA_NAME"),
+    ss_catalog_name = msodbcsql_h(1200 + 25, "SQL_CA_SS_CATALOG_NAME"),
 };
 
 pub const AppRowDesc = struct {

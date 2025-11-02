@@ -1,5 +1,6 @@
 const std = @import("std");
 const c = @import("c");
+const msodbcsql_h = @import("root.zig").msodbcsql_h;
 
 pub const HandleType = enum(c_short) {
     ENV = c.SQL_HANDLE_ENV,
@@ -85,12 +86,12 @@ pub const ColDescription = struct {
 pub const SQLDataType = enum(i16) {
     // https://learn.microsoft.com/en-us/sql/relational-databases/native-client-odbc-date-time/data-type-support-for-odbc-date-and-time-improvements?view=sql-server-ver15
     // SQL Server types
-    ss_timestampoffset = c.SQL_SS_TIMESTAMPOFFSET,
-    ss_time2 = c.SQL_SS_TIME2,
-    ss_table = c.SQL_SS_TABLE,
-    ss_xml = c.SQL_SS_XML,
-    ss_udt = c.SQL_SS_UDT,
-    ss_variant = c.SQL_SS_VARIANT,
+    ss_timestampoffset = msodbcsql_h(-155, "SQL_SS_TIMESTAMPOFFSET"),
+    ss_time2 = msodbcsql_h(-154, "SQL_SS_TIME2"),
+    ss_table = msodbcsql_h(-153, "SQL_SS_TABLE"),
+    ss_xml = msodbcsql_h(-152, "SQL_SS_XML"),
+    ss_udt = msodbcsql_h(-151, "SQL_SS_UDT"),
+    ss_variant = msodbcsql_h(-150, "SQL_SS_VARIANT"),
 
     guid = c.SQL_GUID,
     wlongvarchar = c.SQL_WLONGVARCHAR,
@@ -136,9 +137,28 @@ pub const SQLDataType = enum(i16) {
     interval_minute_to_second = c.SQL_INTERVAL_MINUTE_TO_SECOND,
 };
 
+pub const Time2 = extern struct {
+    hour: c.SQLUSMALLINT,
+    minute: c.SQLUSMALLINT,
+    second: c.SQLUSMALLINT,
+    fraction: c.SQLUINTEGER,
+};
+
+pub const TimestampOffset = extern struct {
+    year: c.SQLSMALLINT,
+    month: c.SQLUSMALLINT,
+    day: c.SQLUSMALLINT,
+    hour: c.SQLUSMALLINT,
+    minute: c.SQLUSMALLINT,
+    second: c.SQLUSMALLINT,
+    fraction: c.SQLUINTEGER,
+    timezone_hour: c.SQLSMALLINT,
+    timezone_minute: c.SQLSMALLINT,
+};
+
 pub const CDataType = enum(c_short) {
-    ss_time2 = c.SQL_C_SS_TIME2,
-    ss_timestampoffset = c.SQL_C_SS_TIMESTAMPOFFSET,
+    ss_time2 = msodbcsql_h(0x04000 + 0, "SQL_C_SS_TIME2"),
+    ss_timestampoffset = msodbcsql_h(0x04000 + 1, "SQL_C_SS_TIMESTAMPOFFSET"),
 
     utinyint = c.SQL_C_UTINYINT,
     stinyint = c.SQL_C_STINYINT,
@@ -214,8 +234,8 @@ pub const CDataType = enum(c_short) {
             .type_timestamp => c.SQL_TIMESTAMP_STRUCT,
             .numeric => c.SQL_NUMERIC_STRUCT,
             .guid => c.SQLGUID,
-            .ss_time2 => c.SQL_SS_TIME2_STRUCT,
-            .ss_timestampoffset => c.SQL_SS_TIMESTAMPOFFSET_STRUCT,
+            .ss_time2 => Time2,
+            .ss_timestampoffset => TimestampOffset,
             else => null,
         };
     }

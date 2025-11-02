@@ -25,10 +25,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .root_source_file = b.path("src/c.h"),
     });
-    c_zig.addIncludePath(std.Build.LazyPath{ .cwd_relative = "/usr/include/" });
     const c_mod = c_zig.createModule();
 
-    c_mod.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/lib64/" });
     c_mod.linkSystemLibrary("odbc", .{});
 
     const odbc_mod = b.addModule("odbc", .{

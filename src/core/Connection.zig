@@ -58,7 +58,7 @@ pub fn getInfo(
         std.debug.assert(biggest_field == @sizeOf(@TypeOf(odbc_buf)));
     }
 
-    return switch (c.SQLGetInfo(
+    return switch (c.SQLGetInfoW(
         self.handle(),
         @intFromEnum(info_type),
         @ptrCast(&odbc_buf),

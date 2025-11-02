@@ -1,3 +1,9 @@
+# Notes on the fork
+
+My focus is exclusively on using zodbc as a library for my [python driver](https://github.com/ffelixg/zodbc_py).
+
+Testing is currently only done with msodbc.
+
 # zodbc
 
 A blazing fast ODBC Zig client
