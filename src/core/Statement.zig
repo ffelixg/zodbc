@@ -546,7 +546,7 @@ pub fn moreResults(self: Self) !void {
         c.SQL_NO_DATA => error.MoreResultsNoData,
         c.SQL_ERROR => error.MoreResultsError,
         c.SQL_INVALID_HANDLE => error.MoreResultsInvalidHandle,
-        c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
+        // c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
         else => unreachable,
     };
 }
