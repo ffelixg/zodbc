@@ -27,7 +27,11 @@ pub fn build(b: *std.Build) void {
     });
     const c_mod = c_zig.createModule();
 
-    c_mod.linkSystemLibrary("odbc", .{});
+    if (target.os.tag == .windows) {
+        c_mod.linkSystemLibrary("odbc32", .{});
+    } else {
+        c_mod.linkSystemLibrary("odbc", .{});
+    }
 
     const odbc_mod = b.addModule("odbc", .{
         .root_source_file = b.path("src/odbc/root.zig"),
