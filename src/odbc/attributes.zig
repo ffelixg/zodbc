@@ -6,6 +6,7 @@ const readInt = mem.readInt;
 
 const c = @import("c");
 const msodbcsql_h = @import("root.zig").msodbcsql_h;
+const opt_h = @import("root.zig").opt_h;
 
 /// IRD array status
 pub const RowStatus = enum(u16) {
@@ -111,9 +112,9 @@ pub const EnvironmentAttribute = enum(c_int) {
     connection_pooling = c.SQL_ATTR_CONNECTION_POOLING,
     cp_match = c.SQL_ATTR_CP_MATCH,
     // unixODBC additions
-    unixodbc_syspath = c.SQL_ATTR_UNIXODBC_SYSPATH,
-    unixodbc_version = c.SQL_ATTR_UNIXODBC_VERSION,
-    unixodbc_envattr = c.SQL_ATTR_UNIXODBC_ENVATTR,
+    unixodbc_syspath = opt_h(65001, "SQL_ATTR_UNIXODBC_SYSPATH"),
+    unixodbc_version = opt_h(65002, "SQL_ATTR_UNIXODBC_VERSION"),
+    unixodbc_envattr = opt_h(65003, "SQL_ATTR_UNIXODBC_ENVATTR"),
     // IBM Db2 specific additions
     // - https://www.ibm.com/docs/en/db2-for-zos/11?topic=functions-sqlsetenvattr-set-environment-attributes
     // info_acctstr = c.SQL_ATTR_INFO_ACCTSTR,
@@ -226,7 +227,7 @@ pub const EnvironmentAttributeValue = union(EnvironmentAttribute) {
 pub const ConnectionAttribute = enum(c_int) {
     // ODBC spec
     connection_dead = c.SQL_ATTR_CONNECTION_DEAD,
-    driver_threading = c.SQL_ATTR_DRIVER_THREADING,
+    driver_threading = opt_h(1028, "SQL_ATTR_DRIVER_THREADING"),
     // ODBC spec >= 3.0
     access_mode = c.SQL_ATTR_ACCESS_MODE,
     autocommit = c.SQL_ATTR_AUTOCOMMIT,

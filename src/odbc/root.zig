@@ -25,3 +25,16 @@ pub fn msodbcsql_h(value: comptime_int, field_name: []const u8) comptime_int {
     }
     return value;
 }
+
+pub fn opt_h(value: comptime_int, field_name: []const u8) comptime_int {
+    if (@hasDecl(c, field_name)) {
+        const actual_value = @field(c, field_name);
+        if (actual_value != value) {
+            @compileError(std.fmt.comptimePrint(
+                "Field: {s}, got {} expected {}\n",
+                .{ field_name, actual_value, value },
+            ));
+        }
+    }
+    return value;
+}
