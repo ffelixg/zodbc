@@ -434,7 +434,7 @@ pub fn paramData(self: Self, T: type) !?*T {
         c.SQL_STILL_EXECUTING => error.ParamDataStillExecuting,
         c.SQL_ERROR => error.ParamDataError,
         c.SQL_INVALID_HANDLE => error.ParamDataInvalidHandle,
-        c.SQL_PARAM_DATA_AVAILABLE => error.ParamDataParamDataAvailable,
+        odbc.opt_h(101, "SQL_PARAM_DATA_AVAILABLE") => error.ParamDataParamDataAvailable,
         else => unreachable,
     };
 }
@@ -475,7 +475,7 @@ pub fn execute(self: Self) !void {
         c.SQL_ERROR => error.ExecuteError,
         c.SQL_NO_DATA => error.ExecuteNoData,
         c.SQL_INVALID_HANDLE => error.ExecuteInvalidHandle,
-        c.SQL_PARAM_DATA_AVAILABLE => error.ExecuteParamDataAvailable,
+        odbc.opt_h(101, "SQL_PARAM_DATA_AVAILABLE") => error.ExecuteParamDataAvailable,
         else => unreachable,
     };
 }
@@ -491,7 +491,7 @@ pub fn execDirect(self: Self, stmt_str: []const u8) !void {
         c.SQL_ERROR => error.ExecDirectError,
         c.SQL_NO_DATA => error.ExecDirectNoData,
         c.SQL_INVALID_HANDLE => error.ExecDirectInvalidHandle,
-        c.SQL_PARAM_DATA_AVAILABLE => error.ExecDirectParamDataAvailable,
+        odbc.opt_h(101, "SQL_PARAM_DATA_AVAILABLE") => error.ExecDirectParamDataAvailable,
         else => unreachable,
     };
 }
@@ -546,7 +546,7 @@ pub fn moreResults(self: Self) !void {
         c.SQL_NO_DATA => error.MoreResultsNoData,
         c.SQL_ERROR => error.MoreResultsError,
         c.SQL_INVALID_HANDLE => error.MoreResultsInvalidHandle,
-        c.SQL_PARAM_DATA_AVAILABLE => error.MoreResultsParamDataAvailable,
+        odbc.opt_h(101, "SQL_PARAM_DATA_AVAILABLE") => error.MoreResultsParamDataAvailable,
         else => unreachable,
     };
 }
