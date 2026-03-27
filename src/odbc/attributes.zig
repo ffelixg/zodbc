@@ -100,6 +100,11 @@ pub const AllocType = enum(i16) {
     alloc_user = c.SQL_DESC_ALLOC_USER,
 };
 
+pub const NoScan = enum(i16) {
+    on = c.SQL_NOSCAN_ON,
+    off = c.SQL_NOSCAN_OFF,
+};
+
 //
 // Environment
 //
@@ -545,6 +550,7 @@ pub const StmtAttrValue = union {
     row_operation_ptr: ?[*]RowOperation,
     row_array_size: u64,
     rows_fetched_ptr: ?*u64,
+    noscan: NoScan,
     param_bind_offset_ptr: ?*u64,
     params_processed_ptr: ?*u64,
     paramset_size: u64,
