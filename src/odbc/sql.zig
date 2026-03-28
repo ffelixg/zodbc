@@ -516,7 +516,7 @@ pub const DiagRecs = struct {
         for (0..n_recs) |i_rec| {
             var sql_state_16: [5:0]u16 = undefined;
             var native_error: i32 = 0;
-            var message_text_16: [1024:0]u16 = undefined;
+            var message_text_16: [8192:0]u16 = undefined;
             var len_message: i16 = 0;
 
             switch (c.SQLGetDiagRecW(
