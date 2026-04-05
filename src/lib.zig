@@ -3,7 +3,7 @@ const std = @import("std");
 pub const odbc = @import("odbc");
 pub const c = odbc.c;
 
-const core = @import("core");
+pub const core = @import("core");
 pub const errors = core.errors;
 pub const Environment = core.Environment;
 pub const Connection = core.Connection;

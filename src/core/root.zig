@@ -14,3 +14,4 @@ pub fn getDiagRecs(has_handler: anytype, allocator: std.mem.Allocator) !sql.Diag
 
 pub const Rowset = @import("Rowset.zig");
 pub const ResultSet = @import("ResultSet.zig");
+pub const tracy = @import("ztracy");

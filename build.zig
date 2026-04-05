@@ -16,6 +16,17 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const ztracy = b.dependency("ztracy", .{
+        // .enable_ztracy = b.option(
+        //     bool,
+        //     "enable_ztracy",
+        //     "Enable Tracy profile markers",
+        // ) orelse false,
+        .enable_ztracy = true,
+        // .enable_ztracy = false,
+        .enable_fibers = false,
+        .on_demand = false,
+    });
 
     // ----------------------------
     // Module
@@ -46,6 +57,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    core_mod.addImport("ztracy", ztracy.module("root"));
     core_mod.addImport("odbc", odbc_mod);
 
     const pool_mod = b.addModule("pool", .{
@@ -99,6 +111,7 @@ pub fn build(b: *std.Build) void {
     // lib.root_module.addImport("core", core_mod);
     // lib.root_module.addImport("pool", pool_mod);
     lib.linkage = .dynamic;
+    lib.linkLibrary(ztracy.artifact("tracy"));
     b.installArtifact(lib);
 
     // ----------------------------
