@@ -119,7 +119,7 @@ pub fn colAttributeString(
         null,
     )) {
         c.SQL_SUCCESS => try std.unicode.wtf16LeToWtf8AllocZ(allocator, odbc_buf[0..@intCast(@divExact(str_len, 2))]),
-        c.SQL_SUCCESS_WITH_INFO => error.ColAttibuteSuccessWithInfo,
+        c.SQL_SUCCESS_WITH_INFO => error.ColAttributeSuccessWithInfo,
         c.SQL_ERROR => error.ColAttributeError,
         c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
         else => unreachable,
@@ -151,7 +151,6 @@ pub fn colAttribute(self: Self, col_number: u16, comptime attr: attrs.ColAttribu
         c.SQL_SUCCESS_WITH_INFO => error.ColAttributeSuccessWithInfo,
         c.SQL_ERROR => error.ColAttributeError,
         c.SQL_INVALID_HANDLE => error.ColAttributeInvalidHandle,
-        c.SQL_NO_DATA => error.ColAttributeNoData,
         else => unreachable,
     };
 }
