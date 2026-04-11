@@ -8,10 +8,6 @@
             .url = "git+https://github.com/sam701/zig-cli#f9a516ddc9771ddd2c8c46a280a9ab6cab8261f2",
             .hash = "cli-0.10.0-2eKe_5kEAQBeHqKxUHNTGnETzu81rqKWwT1WPt1jXBt0",
         },
-        .ztracy = .{
-            .url = "https://github.com/zig-gamedev/ztracy/archive/d95d2a193b9f97944a17026c9a42b5d0f9a88c94.tar.gz",
-            .hash = "ztracy-0.14.0-dev-zHJSqzUHGQAmhJybhlwtl1QKevUBw4M5YKZqPfWx2y99",
-        },
     },
     .paths = .{
         "build.zig",

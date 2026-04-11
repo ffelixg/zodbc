@@ -551,9 +551,6 @@ pub fn moreResults(self: Self) !void {
 }
 
 pub fn fetch(self: Self) !void {
-    const ztracy = @import("ztracy");
-    const zone = ztracy.ZoneNC(@src(), "SQLFetch", 0x00_ff_00_00);
-    defer zone.End();
     return switch (c.SQLFetch(self.handle())) {
         c.SQL_SUCCESS => {},
         c.SQL_SUCCESS_WITH_INFO => error.FetchSuccessWithInfo,
