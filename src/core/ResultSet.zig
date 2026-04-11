@@ -173,6 +173,8 @@ pub fn deinit(self: *ResultSet) !void {
     self.columns.deinit(allocator);
     allocator.free(self.borrowed_row);
     allocator.free(self.array_status);
+    try self.stmt.setStmtAttr(.row_status_ptr, null);
+    try self.stmt.setStmtAttr(.row_array_size, 1);
     try self.stmt.free(.unbind);
 }
 
