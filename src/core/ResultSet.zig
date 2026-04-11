@@ -38,7 +38,6 @@ n_cols_bound: usize,
 stmt: core.Statement,
 columns: std.ArrayListUnmanaged(Column),
 array_status: []RowStatus,
-// rows_fetched: *u64,
 borrowed_row: []?[]u8,
 allocator: std.mem.Allocator,
 
@@ -152,9 +151,6 @@ pub fn init(stmt: core.Statement, desc: core.Descriptor.AppRowDesc, allocator: s
     errdefer allocator.free(array_status);
     try stmt.setStmtAttr(.row_bind_type, 0);
     try stmt.setStmtAttr(.row_status_ptr, array_status.ptr);
-    // const rows_fetched = try allocator.create(u64);
-    // errdefer allocator.destroy(rows_fetched);
-    // try stmt.setStmtAttr(.rows_fetched_ptr, rows_fetched);
     try stmt.setStmtAttr(.row_array_size, odbc_buf_rows);
 
     return .{
@@ -166,7 +162,6 @@ pub fn init(stmt: core.Statement, desc: core.Descriptor.AppRowDesc, allocator: s
         .n_cols_bound = n_cols_bound,
         .columns = columns,
         .array_status = array_status,
-        // .rows_fetched = rows_fetched,
         .borrowed_row = try allocator.alloc(?[]u8, n_cols),
         .allocator = allocator,
     };
@@ -178,7 +173,6 @@ pub fn deinit(self: *ResultSet) !void {
     self.columns.deinit(allocator);
     allocator.free(self.borrowed_row);
     allocator.free(self.array_status);
-    // allocator.destroy(self.rows_fetched);
     try self.stmt.setStmtAttr(.row_status_ptr, null);
     try self.stmt.setStmtAttr(.row_array_size, 1);
     try self.stmt.free(.unbind);
@@ -235,9 +229,6 @@ pub fn borrowRow(res: *@This()) !?[]?[]u8 {
         res.next_row = 0;
     }
 
-    // if (res.next_row >= res.rows_fetched.*) {
-    //     return null;
-    // }
     switch (res.array_status[res.next_row]) {
         .success => {},
         .success_with_info, .err => return error.ArrayStatusError,
